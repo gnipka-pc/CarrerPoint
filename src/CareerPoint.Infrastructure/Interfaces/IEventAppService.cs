@@ -5,13 +5,13 @@ namespace CareerPoint.Infrastructure.Interfaces;
 
 public interface IEventAppService
 {
-    public Task<EventDto> GetEventByIdAsync(Guid id);
+    public Task<EventDto?> GetEventByIdAsync(Guid id);
 
     public Task<List<EventDto>> GetEventsAsync();
 
     public Task CreateEventAsync(EventDto evDto);
 
-    public Task DeleteEventAsync(Guid id);
+    public Task DeleteEventAsync(EventDto id);
 
     public Task UpdateEventAsync(EventDto newEventDto);
 }

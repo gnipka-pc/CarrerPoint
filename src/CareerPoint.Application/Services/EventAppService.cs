@@ -29,33 +29,28 @@ public class EventAppService : IEventAppService
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteEventAsync(Guid id)
+    public async Task DeleteEventAsync(EventDto ev)
     {
-        Event ev = await _events.FindAsync(id) ?? throw new NullReferenceException("Событие не было найдено");
-       
-        _events.Remove(ev);
+        _events.Remove(_mapper.Map<Event>(ev));
         await _context.SaveChangesAsync();
     }
 
-    public async Task<EventDto> GetEventByIdAsync(Guid id)
+    public async Task<EventDto?> GetEventByIdAsync(Guid id)
     {
-        Event ev = await _events.FindAsync(id) ?? throw new NullReferenceException("Событие не было найдено");
+        Event? ev = await _events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
-        return _mapper.Map<EventDto>(ev);
+        return _mapper.Map<EventDto?>(ev);
     }
 
     public async Task<List<EventDto>> GetEventsAsync()
     {
-        return await _events.Select(ev => _mapper.Map<EventDto>(ev)).ToListAsync();
+        return await _events.AsNoTracking().Select(ev => _mapper.Map<EventDto>(ev)).ToListAsync();
     }
 
     public async Task UpdateEventAsync(EventDto newEventDto)
     {
         _events.Update(_mapper.Map<Event>(newEventDto));
 
-        int isChanged = await _context.SaveChangesAsync();
-
-        if (isChanged == 0)
-            throw new NullReferenceException("Событие не было найдено");
+        await _context.SaveChangesAsync();
     }
 }
