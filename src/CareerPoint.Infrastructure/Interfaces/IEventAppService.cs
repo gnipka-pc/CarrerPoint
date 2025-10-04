@@ -11,7 +11,7 @@ public interface IEventAppService
 
     public Task CreateEventAsync(EventDto evDto);
 
-    public Task DeleteEventAsync(EventDto id);
+    public Task DeleteEventAsync(EventDto ev);
 
     public Task UpdateEventAsync(EventDto newEventDto);
 }

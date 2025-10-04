@@ -5,13 +5,13 @@ namespace CareerPoint.Infrastructure.Interfaces;
 
 public interface IUserAppService
 {
-    public Task<UserDto> GetUserByIdAsync(Guid id);
+    public Task<UserDto?> GetUserByIdAsync(Guid id);
 
     public Task<List<UserDto>> GetUsersAsync();
 
     public Task CreateUserAsync(UserDto userDto);
 
-    public Task DeleteUserAsync(Guid id);
+    public Task DeleteUserAsync(UserDto userDto);
 
     public Task UpdateUserAsync(UserDto userDto);
 

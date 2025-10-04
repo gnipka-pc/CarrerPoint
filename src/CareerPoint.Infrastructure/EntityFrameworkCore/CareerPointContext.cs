@@ -15,8 +15,9 @@ public class CareerPointContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseMySql("server=localhost;user=root;password=CyEnREzXX12b;database=CareerPoint",
-            new MySqlServerVersion(new Version(8, 0, 41)));
+        string connectionString = "server=localhost;port=3306;user=root;password=CyEnREzXX12b;database=CareerPoint;AllowPublicKeyRetrieval=True;SslMode=None;";
+
+        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

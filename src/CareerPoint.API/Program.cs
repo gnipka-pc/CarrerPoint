@@ -31,14 +31,17 @@ public class Program
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+
+        using (var scope = app.Services.CreateScope())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            var dbContext = scope.ServiceProvider.GetRequiredService<CareerPointContext>();
+            dbContext.Database.Migrate();
         }
 
-        app.UseHttpsRedirection();
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        //app.UseHttpsRedirection();
 
         app.UseAuthorization();
 

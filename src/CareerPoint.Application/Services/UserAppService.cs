@@ -29,33 +29,28 @@ public class UserAppService : IUserAppService
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteUserAsync(Guid id)
+    public async Task DeleteUserAsync(UserDto user)
     {
-        User user = await _users.FindAsync(id) ?? throw new NullReferenceException("Пользователь не был найден");
-
-        _users.Remove(user);
+        _users.Remove(_mapper.Map<User>(user));
         await _context.SaveChangesAsync();
     }
 
-    public async Task<UserDto> GetUserByIdAsync(Guid id)
+    public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
-        User user = await _users.FindAsync(id) ?? throw new NullReferenceException("Пользователь не был найден");
+        User? user = await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
 
-        return _mapper.Map<UserDto>(user);
+        return _mapper.Map<UserDto?>(user);
     }
 
     public async Task<List<UserDto>> GetUsersAsync()
     {
-        return await _users.Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
+        return await _users.AsNoTracking().Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
     }
 
     public async Task UpdateUserAsync(UserDto userDto)
     {
         _users.Update(_mapper.Map<User>(userDto));
 
-        int isChanged = await _context.SaveChangesAsync();
-
-        if (isChanged == 0)
-            throw new NullReferenceException("Событие не было найдено");
+        await _context.SaveChangesAsync();
     }
 }

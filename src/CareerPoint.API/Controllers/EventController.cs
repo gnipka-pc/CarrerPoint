@@ -60,11 +60,9 @@ public class EventController : ControllerBase
     [HttpPut("update-event")]
     public async Task<IActionResult> UpdateEventAsync([FromBody] EventDto newEvent)
     {
-        EventDto? ev = await _eventAppService.GetEventByIdAsync(newEvent.Id);
-
-        if (ev != null)
+        if (await _eventAppService.GetEventByIdAsync(newEvent.Id) != null)
         {
-            await _eventAppService.UpdateEventAsync(ev);
+            await _eventAppService.UpdateEventAsync(newEvent);
             return Ok("Ивент изменен успешно");
         }
             

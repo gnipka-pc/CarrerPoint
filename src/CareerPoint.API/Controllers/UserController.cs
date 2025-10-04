@@ -18,7 +18,14 @@ public class UserController : ControllerBase
     [HttpGet("get-user/{id}")]
     public async Task<IActionResult> GetUserByIdAsync(Guid id)
     {
-        return Ok(await _userAppService.GetUserByIdAsync(id));
+        UserDto? user = await _userAppService.GetUserByIdAsync(id);
+
+        if (user != null)
+        {
+            return Ok(user);
+        }
+
+        return NotFound("Пользователь не был найден");
     }
 
     [HttpGet("get-users")]
@@ -30,24 +37,41 @@ public class UserController : ControllerBase
     [HttpPost("create-user")]
     public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userDto)
     {
-        await _userAppService.CreateUserAsync(userDto);
+        if (await _userAppService.GetUserByIdAsync(userDto.Id) == null)
+        {
+            await _userAppService.CreateUserAsync(userDto);
 
-        return Ok("Пользователь успешно добавлен");
+            return Ok("Пользователь успешно добавлен");
+        }
+        
+        return BadRequest("Пользователь с данным Id уже существует");
     }
 
     [HttpDelete("delete-user/{id}")]
     public async Task<IActionResult> DeleteUserAsync(Guid id)
     {
-        await _userAppService.DeleteUserAsync(id);
+        UserDto? user = await _userAppService.GetUserByIdAsync(id);
 
-        return Ok("Пользователь успешно удален");
+        if (user != null)
+        {
+            await _userAppService.DeleteUserAsync(user);
+
+            return Ok("Пользователь успешно удален");
+        }
+
+        return BadRequest("Пользователь не был найден");
     }
 
     [HttpPut("update-user")]
     public async Task<IActionResult> UpdateUserAsync(UserDto userDto)
     {
-        await _userAppService.UpdateUserAsync(userDto);
+        if (await _userAppService.GetUserByIdAsync(userDto.Id) != null)
+        {
+            await _userAppService.UpdateUserAsync(userDto);
 
-        return Ok("Пользователь успешно изменен");
+            return Ok("Пользователь успешно изменен");
+        }
+
+        return BadRequest("Пользователь не был найден");        
     }
 }
