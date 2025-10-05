@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    [Migration("20251004141518_Added_Props_To_User")]
+    [Migration("20251005132041_Added_Props_To_User")]
     partial class Added_Props_To_User
     {
         /// <inheritdoc />

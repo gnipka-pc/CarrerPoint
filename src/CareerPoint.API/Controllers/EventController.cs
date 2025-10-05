@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CareerPoint.Web.Controllers;
 
 [Route("api/events")]
+[ApiController]
 public class EventController : ControllerBase
 {
     readonly IEventAppService _eventAppService;

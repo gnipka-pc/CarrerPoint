@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CareerPoint.Web.Controllers;
 
 [Route("api/users")]
+[ApiController]
 public class UserController : ControllerBase
 {
     readonly IUserAppService _userAppService;

@@ -11,7 +11,9 @@ public class CareerPointProfile : Profile
         CreateMap<Event, EventDto>();
         CreateMap<EventDto, Event>();
 
-        CreateMap<User, UserDto>();
-        CreateMap<UserDto, User>();
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.HashedPassword));
+        CreateMap<UserDto, User>()
+            .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
     }
 }

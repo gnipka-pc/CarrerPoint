@@ -1,7 +1,10 @@
 using CareerPoint.Application.Mappings;
 using CareerPoint.Application.Services;
+using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.EntityFrameworkCore;
 using CareerPoint.Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -26,8 +29,19 @@ public class Program
 
         builder.Services.AddTransient<IEventAppService, EventAppService>();
         builder.Services.AddTransient<IUserAppService, UserAppService>();
+        builder.Services.AddTransient<IAuthAppService, AuthAppService>();
+        builder.Services.AddTransient<IPasswordHasher<UserDto>, PasswordHasher<UserDto>>();
 
         builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CareerPointProfile>());
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Events.OnRedirectToLogin = (context) =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+            });
 
         var app = builder.Build();
 
@@ -43,6 +57,7 @@ public class Program
 
         //app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
 
