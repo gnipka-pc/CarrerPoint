@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CareerPoint.Infrastructure.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
@@ -23,4 +24,6 @@ public class UserDto
     public required string TelegramLink { get; set; }
 
     public required string PortfolioLink { get; set; }
+
+    public UserRole UserRole { get; set; }
 }

@@ -1,5 +1,7 @@
 ﻿using CareerPoint.Infrastructure.DTOs;
+using CareerPoint.Infrastructure.Enums;
 using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Web.Attributes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -27,10 +29,19 @@ public class AuthController : ControllerBase
         if (user is null)
             return BadRequest("Почта или пароль не правильные");
 
+        string userRole = user.UserRole switch
+        {
+            UserRole.Admin => "Admin",
+            UserRole.Manager => "Manager",
+            UserRole.DefaultUser => "DefaultUser",
+            _ => throw new UnauthorizedAccessException()
+        };
+
         List<Claim> claims = new()
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, userRole)
         };
 
         ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -49,7 +60,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("get-claims")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult GetClaims()
     {
         return Ok(User.Claims.Select(c => new {c.Type, c.Value}));

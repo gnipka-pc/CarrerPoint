@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CareerPoint.Infrastructure.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace CareerPoint.Infrastructure.Model;
 
@@ -23,6 +24,8 @@ public class User
     public required string TelegramLink { get; set; }
 
     public required string PortfolioLink { get; set; }
+
+    public UserRole UserRole { get; set; }
 
     public List<Event> Events { get; set; } = new();
 }

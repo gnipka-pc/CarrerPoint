@@ -1,5 +1,6 @@
 ﻿using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CareerPoint.Web.Controllers;
@@ -31,6 +32,7 @@ public class EventController : ControllerBase
         return Ok(await _eventAppService.GetEventsAsync());
     }
 
+    [Authorize(Roles = "Manager")]
     [HttpPost("create-event")]
     public async Task<IActionResult> CreateEventAsync([FromBody] EventDto ev)
     {
@@ -44,6 +46,7 @@ public class EventController : ControllerBase
         return BadRequest("Ивент с данным Id уже существует");
     }
 
+    [Authorize(Roles = "Manager")]
     [HttpDelete("delete-event/{id}")]
     public async Task<IActionResult> DeleteEventAsync(Guid id)
     {
@@ -58,6 +61,7 @@ public class EventController : ControllerBase
         return NotFound("Ивент с данным id не был найден");
     }
 
+    [Authorize(Roles = "Manager")]
     [HttpPut("update-event")]
     public async Task<IActionResult> UpdateEventAsync([FromBody] EventDto newEvent)
     {

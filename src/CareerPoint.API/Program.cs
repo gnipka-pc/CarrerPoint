@@ -42,6 +42,7 @@ public class Program
                     return Task.CompletedTask;
                 };
             });
+        builder.Services.AddAuthorization();
 
         var app = builder.Build();
 

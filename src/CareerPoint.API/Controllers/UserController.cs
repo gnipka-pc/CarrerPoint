@@ -1,10 +1,12 @@
 ﻿using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Interfaces;
 using CareerPoint.Infrastructure.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CareerPoint.Web.Controllers;
 
+[Authorize]
 [Route("api/users")]
 [ApiController]
 public class UserController : ControllerBase
@@ -29,23 +31,26 @@ public class UserController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
+    [Authorize(Roles = "Manager")]
     [HttpGet("get-users")]
     public async Task<IActionResult> GetUsersAsync()
     {
         return Ok(await _userAppService.GetUsersAsync());
     }
 
+    [AllowAnonymous]
     [HttpPost("create-user")]
     public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userDto)
     {
-        if (await _userAppService.GetUserByIdAsync(userDto.Id) == null)
+        if ((await _userAppService.GetUsersAsync())
+            .Any(u => u.Username == userDto.Username || u.Email == userDto.Email || u.Id == userDto.Id))
         {
             await _userAppService.CreateUserAsync(userDto);
 
             return Ok("Пользователь успешно добавлен");
         }
         
-        return BadRequest("Пользователь с данным Id уже существует");
+        return BadRequest("Пользователь с данной почтой или логином уже существует");
     }
 
     [HttpDelete("delete-user/{id}")]
