@@ -25,5 +25,7 @@ public class UserDto
 
     public required string PortfolioLink { get; set; }
 
+    public bool IsSubscribedToEvents { get; set; }
+
     public UserRole UserRole { get; set; }
 }

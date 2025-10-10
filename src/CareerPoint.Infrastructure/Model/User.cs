@@ -25,6 +25,8 @@ public class User
 
     public required string PortfolioLink { get; set; }
 
+    public bool IsSubscribedToEvents { get; set; }
+
     public UserRole UserRole { get; set; }
 
     public List<Event> Events { get; set; } = new();

@@ -31,6 +31,7 @@ public class Program
         builder.Services.AddTransient<IUserAppService, UserAppService>();
         builder.Services.AddTransient<IAuthAppService, AuthAppService>();
         builder.Services.AddTransient<IPasswordHasher<UserDto>, PasswordHasher<UserDto>>();
+        builder.Services.AddTransient<INotificationAppService, NotificationAppService>();
 
         builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CareerPointProfile>());
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
