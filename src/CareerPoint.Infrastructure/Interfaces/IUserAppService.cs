@@ -15,13 +15,5 @@ public interface IUserAppService
 
     public Task UpdateUserAsync(UserDto userDto);
 
-    //public Task<User> GetUserByIdAsync(Guid id);
-
-    //public Task<List<User>> GetUsersAsync();
-
-    //public Task CreateUserAsync(User user);
-
-    //public Task DeleteUserAsync(Guid id);
-
-    //public Task UpdateUserAsync(User user);
+    public Task<bool> AddEventToUserAsync(Guid userId, Guid eventId);
 }

@@ -2,7 +2,6 @@
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Enums;
 using CareerPoint.Infrastructure.Interfaces;
-using CareerPoint.Web.Attributes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -27,8 +26,27 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("get-user")]
+    public async Task<IActionResult> GetUserByIdAsync()
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id is null)
+            return Unauthorized("Пользователь не авторизован");
+
+        UserDto? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+
+        if (user != null)
+        {
+            return Ok(user);
+        }
+
+        return NotFound("Пользователь не был найден");
+    }
+
+    [Authorize]
     [HttpDelete("delete-account")]
-    public async Task<IActionResult> DeleteAccount()
+    public async Task<IActionResult> DeleteAccountAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -45,8 +63,39 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно удален");
     }
 
+    [Authorize]
+    [HttpPut("update-account")]
+    public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto user)
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id is null)
+            return Unauthorized("Пользователь не авторизован");
+
+        await _userAppService.UpdateUserAsync(user);
+
+        return Ok("Пользователь успешно изменен");
+    }
+
+    [Authorize]
+    [HttpPut("add-event-to-user")]
+    public async Task<IActionResult> AddEventToUserAsync([FromBody] Guid eventId)
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id is null)
+            return Unauthorized("Пользователь не авторизован");
+
+        bool isSucсess = await _userAppService.AddEventToUserAsync(Guid.Parse(id), eventId);
+
+        if (isSucсess)
+            return Ok("Ивент успешно добавлен пользователю");
+
+        return BadRequest("Не удалось добавить ивент пользователю");
+    }
+
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] UserDto user)
+    public async Task<IActionResult> RegisterAsync([FromBody] UserDto user)
     {
         if (!(await _userAppService.GetUsersAsync())
             .Any(u => u.Username == user.Username || u.Email == user.Email || u.Id == user.Id))

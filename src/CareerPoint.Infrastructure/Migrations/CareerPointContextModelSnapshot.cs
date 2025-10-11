@@ -62,7 +62,7 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("IsSubscribedToEvents")
+                    b.Property<bool>("IsSubscribedToNotifications")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")

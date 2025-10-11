@@ -5,13 +5,13 @@
 namespace CareerPoint.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Add_IsSubscribedToEventsProperty_To_User : Migration
+    public partial class Add_IsSubscribedToNotifications_To_User : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsSubscribedToEvents",
+                name: "IsSubscribedToNotifications",
                 table: "Users",
                 type: "tinyint(1)",
                 nullable: false,
@@ -22,7 +22,7 @@ namespace CareerPoint.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsSubscribedToEvents",
+                name: "IsSubscribedToNotifications",
                 table: "Users");
         }
     }

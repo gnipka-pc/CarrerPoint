@@ -25,19 +25,19 @@ public class NotificationAppService : INotificationAppService
 
     public async Task<List<UserDto>> GetSubscribedUsersAsync()
     {
-        return await _users.AsNoTracking().Where(u => u.IsSubscribedToEvents == true).Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
+        return await _users.AsNoTracking().Where(u => u.IsSubscribedToNotifications == true).Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
     }
 
     public async Task<bool> SubscribeToNotificationsAsync(Guid userId)
     {
         User? user = await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null || user.IsSubscribedToEvents == true)
+        if (user == null || user.IsSubscribedToNotifications == true)
         {
             return false;
         }
 
-        user.IsSubscribedToEvents = true;
+        user.IsSubscribedToNotifications = true;
 
         _users.Update(user);
         await _context.SaveChangesAsync();
@@ -49,12 +49,12 @@ public class NotificationAppService : INotificationAppService
     {
         User? user = await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null || user.IsSubscribedToEvents == false)
+        if (user == null || user.IsSubscribedToNotifications == false)
         {
             return false;
         }
 
-        user.IsSubscribedToEvents = false;
+        user.IsSubscribedToNotifications = false;
 
         _users.Update(user);
         await _context.SaveChangesAsync();

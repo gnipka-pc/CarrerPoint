@@ -5,6 +5,7 @@ using CareerPoint.Infrastructure.Interfaces;
 using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 
 namespace CareerPoint.Application.Services;
 
@@ -57,5 +58,23 @@ public class UserAppService : IUserAppService
         _users.Update(_mapper.Map<User>(userDto));
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> AddEventToUserAsync(Guid userId, Guid eventId)
+    {
+        User? user = await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        Event? ev = await _context.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (user is null || ev is null)
+            return false;
+
+        if (user.Events.Any(e => e.Id == eventId))
+            return false;
+
+        user.Events.Add(ev);
+        _users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

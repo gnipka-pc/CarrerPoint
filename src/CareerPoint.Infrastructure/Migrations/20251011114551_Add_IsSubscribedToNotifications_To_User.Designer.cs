@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    [Migration("20251010131446_Add_IsSubscribedToEventsProperty_To_User")]
-    partial class Add_IsSubscribedToEventsProperty_To_User
+    [Migration("20251011114551_Add_IsSubscribedToNotifications_To_User")]
+    partial class Add_IsSubscribedToNotifications_To_User
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,7 +65,7 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("IsSubscribedToEvents")
+                    b.Property<bool>("IsSubscribedToNotifications")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
