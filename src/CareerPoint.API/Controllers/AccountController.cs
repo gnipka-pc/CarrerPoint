@@ -94,6 +94,40 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось добавить ивент пользователю");
     }
 
+    [Authorize]
+    [HttpPut("remove-event-from-user")]
+    public async Task<IActionResult> RemoveEventFromUser([FromBody] Guid eventId)
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id is null)
+            return Unauthorized("Пользователь не авторизован");
+
+        bool isSucess = await _userAppService.RemoveEventFromUserAsync(Guid.Parse(id), eventId);
+
+        if (isSucess)
+            return Ok("Ивент успешно удален у пользователя");
+
+        return BadRequest("Не удалось удалить ивент у пользователя");
+    }
+
+    [Authorize]
+    [HttpGet("get-user-events")]
+    public async Task<IActionResult> GetUserEventsAsync()
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id is null)
+            return Unauthorized("Пользователь не авторизован");
+
+        List<EventDto> events = await _userAppService.GetUserEventsAsync(Guid.Parse(id));
+
+        if (events.Count == 0)
+            return NotFound("У пользователя нет ивентов");
+
+        return Ok(events);
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] UserDto user)
     {
