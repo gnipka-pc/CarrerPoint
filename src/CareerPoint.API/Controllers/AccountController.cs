@@ -10,13 +10,22 @@ using System.Security.Claims;
 
 namespace CareerPoint.Web.Controllers;
 
+/// <summary>
+/// Контроллер пользователей
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
+[Produces("application/json")]
 public class AccountController : ControllerBase
 {
     readonly IAuthAppService _authAppService;
     readonly IUserAppService _userAppService;
 
+    /// <summary>
+    /// Базовый конструктор контроллера пользователей
+    /// </summary>
+    /// <param name="authAppService">Апп сервис аутентификации</param>
+    /// <param name="userAppService">Апп сервис пользователей</param>
     public AccountController(
         IAuthAppService authAppService,
         IUserAppService userAppService)
@@ -25,8 +34,15 @@ public class AccountController : ControllerBase
         _userAppService = userAppService;
     }
 
+    /// <summary>
+    /// Возвращает пользователя по его Id
+    /// </summary>
+    /// <returns>Пользователь</returns>
     [Authorize]
     [HttpGet("get-user")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserByIdAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -44,8 +60,15 @@ public class AccountController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
+    /// <summary>
+    /// Удаляет пользователя
+    /// </summary>
+    /// <returns></returns>
     [Authorize]
     [HttpDelete("delete-account")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAccountAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -63,22 +86,43 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно удален");
     }
 
+    /// <summary>
+    /// Обновляет пользователя
+    /// </summary>
+    /// <param name="userDto">Пользователь</param>
+    /// <returns></returns>
     [Authorize]
     [HttpPut("update-account")]
-    public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto user)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto userDto)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (id is null)
             return Unauthorized("Пользователь не авторизован");
 
-        await _userAppService.UpdateUserAsync(user);
+        UserDto? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        await _userAppService.UpdateUserAsync(userDto);
 
         return Ok("Пользователь успешно изменен");
     }
 
+    /// <summary>
+    /// Добавляет ивент пользователю по айди
+    /// </summary>
+    /// <param name="eventId">Айди ивента</param>
+    /// <returns></returns>
     [Authorize]
     [HttpPut("add-event-to-user")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddEventToUserAsync([FromBody] Guid eventId)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -94,8 +138,16 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось добавить ивент пользователю");
     }
 
+    /// <summary>
+    /// Удаляет ивент у пользователя по айди
+    /// </summary>
+    /// <param name="eventId">Айди ивента</param>
+    /// <returns></returns>
     [Authorize]
     [HttpPut("remove-event-from-user")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveEventFromUser([FromBody] Guid eventId)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -111,8 +163,15 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось удалить ивент у пользователя");
     }
 
+    /// <summary>
+    /// Получает ивенты пользователя
+    /// </summary>
+    /// <returns>Список ивентов</returns>
     [Authorize]
     [HttpGet("get-user-events")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserEventsAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -128,7 +187,14 @@ public class AccountController : ControllerBase
         return Ok(events);
     }
 
+    /// <summary>
+    /// Регистрация пользователя
+    /// </summary>
+    /// <param name="user">Пользователь</param>
+    /// <returns></returns>
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAsync([FromBody] UserDto user)
     {
         if (!(await _userAppService.GetUsersAsync())
@@ -142,7 +208,15 @@ public class AccountController : ControllerBase
         return BadRequest("Пользователь с данной почтой или логином уже существует");
     }
 
+    /// <summary>
+    /// Вход в аккаунт
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedAccessException">Если роль не существует, то выбрасывается ошибка</exception>
     [HttpPost("sign-in")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SignInAsync([FromBody] SignInRequest request)
     {
         UserDto? user = await _authAppService.FindUserByEmailAndPasswordAsync(request.Email, request.Password);
@@ -179,21 +253,25 @@ public class AccountController : ControllerBase
         return Ok("Вы успешно вошли в аккаунт");
     }
 
+    /// <summary>
+    /// Выход из аккаунта
+    /// </summary>
+    /// <returns></returns>
     [Authorize]
     [HttpGet("sign-out")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SignOutAsync()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         return Ok("Вы успешно вышли из аккаунта");
     }
-
-    //[HttpGet("get-claims")]
-    //[Authorize(Roles = "Admin")]
-    //public IActionResult GetClaims()
-    //{
-    //    return Ok(User.Claims.Select(c => new {c.Type, c.Value}));
-    //}
 }
 
+/// <summary>
+/// Запрос на вход в аккаунт
+/// </summary>
+/// <param name="Email">Почта</param>
+/// <param name="Password">Пароль</param>
 public record SignInRequest(string Email, string Password);
