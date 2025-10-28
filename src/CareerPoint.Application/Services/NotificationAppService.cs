@@ -12,20 +12,17 @@ public class NotificationAppService : INotificationAppService
 {
     readonly CareerPointContext _context;
     readonly DbSet<User> _users;
-    readonly IMapper _mapper;
 
     public NotificationAppService(
-        CareerPointContext context,
-        IMapper mapper)
+        CareerPointContext context)
     {
         _context = context;
         _users = context.Users;
-        _mapper = mapper;
     }
 
-    public async Task<List<UserDto>> GetSubscribedUsersAsync()
+    public async Task<List<User>> GetSubscribedUsersAsync()
     {
-        return await _users.AsNoTracking().Where(u => u.IsSubscribedToNotifications == true).Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
+        return await _users.AsNoTracking().Where(u => u.IsSubscribedToNotifications == true).ToListAsync();
     }
 
     public async Task<bool> SubscribeToNotificationsAsync(Guid userId)

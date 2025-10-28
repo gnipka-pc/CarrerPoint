@@ -1,9 +1,8 @@
 ﻿using CareerPoint.Infrastructure.Enums;
-using Microsoft.AspNetCore.Identity;
 
-namespace CareerPoint.Infrastructure.Model;
+namespace CareerPoint.Infrastructure.DTOs;
 
-public class User
+public class CreateUpdateDeleteUserDto
 {
     public Guid Id { get; set; }
 
@@ -11,7 +10,7 @@ public class User
 
     public required string Email { get; set; }
 
-    public required string HashedPassword { get; set; }
+    public required string Password { get; set; }
 
     public required string Name { get; set; }
 
@@ -28,8 +27,6 @@ public class User
     public bool IsSubscribedToNotifications { get; set; }
 
     public UserRole UserRole { get; set; }
-
-    public List<Event> Events { get; set; } = new();
 
     public byte[]? Avatar { get; set; }
 }

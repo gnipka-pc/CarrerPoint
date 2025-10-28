@@ -3,6 +3,7 @@ using CareerPoint.Application.Services;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.EntityFrameworkCore;
 using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +36,9 @@ public class Program
         builder.Services.AddTransient<IEventAppService, EventAppService>();
         builder.Services.AddTransient<IUserAppService, UserAppService>();
         builder.Services.AddTransient<IAuthAppService, AuthAppService>();
-        builder.Services.AddTransient<IPasswordHasher<UserDto>, PasswordHasher<UserDto>>();
         builder.Services.AddTransient<INotificationAppService, NotificationAppService>();
+        builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+        //builder.Services.AddTransient<IPasswordHasher<CreateUpdateDeleteUserDto>, PasswordHasher<CreateUpdateDeleteUserDto>>();
 
         builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CareerPointProfile>());
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

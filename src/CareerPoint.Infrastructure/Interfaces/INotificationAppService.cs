@@ -1,10 +1,10 @@
-﻿using CareerPoint.Infrastructure.DTOs;
+﻿using CareerPoint.Infrastructure.Model;
 
 namespace CareerPoint.Infrastructure.Interfaces;
 
 public interface INotificationAppService
 {
-    public Task<List<UserDto>> GetSubscribedUsersAsync();
+    public Task<List<User>> GetSubscribedUsersAsync();
 
     public Task<bool> SubscribeToNotificationsAsync(Guid userId);
 

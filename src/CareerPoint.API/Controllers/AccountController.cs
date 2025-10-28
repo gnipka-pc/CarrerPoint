@@ -1,7 +1,9 @@
-﻿using CareerPoint.Application.Services;
+﻿using AutoMapper;
+using CareerPoint.Application.Services;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Enums;
 using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -20,18 +22,22 @@ public class AccountController : ControllerBase
 {
     readonly IAuthAppService _authAppService;
     readonly IUserAppService _userAppService;
+    readonly IMapper _mapper;
 
     /// <summary>
     /// Базовый конструктор контроллера пользователей
     /// </summary>
     /// <param name="authAppService">Апп сервис аутентификации</param>
     /// <param name="userAppService">Апп сервис пользователей</param>
+    /// <param name="mapper">Автомаппер</param>
     public AccountController(
         IAuthAppService authAppService,
-        IUserAppService userAppService)
+        IUserAppService userAppService,
+        IMapper mapper)
     {
         _authAppService = authAppService;
         _userAppService = userAppService;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -50,7 +56,7 @@ public class AccountController : ControllerBase
         if (id is null)
             return Unauthorized("Пользователь не авторизован");
 
-        UserDto? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+        UserDto? user = _mapper.Map<UserDto>(await _userAppService.GetUserByIdAsync(Guid.Parse(id)));
 
         if (user != null)
         {
@@ -76,7 +82,7 @@ public class AccountController : ControllerBase
         if (id is null)
             return Unauthorized("Пользователь не авторизован");
 
-        UserDto? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+        User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
             return NotFound("Пользователь не найден");
@@ -103,12 +109,12 @@ public class AccountController : ControllerBase
         if (id is null)
             return Unauthorized("Пользователь не авторизован");
 
-        UserDto? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+        User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
             return NotFound("Пользователь не найден");
 
-        await _userAppService.UpdateUserAsync(userDto);
+        await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
 
         return Ok("Пользователь успешно изменен");
     }
@@ -179,12 +185,12 @@ public class AccountController : ControllerBase
         if (id is null)
             return Unauthorized("Пользователь не авторизован");
 
-        List<EventDto> events = await _userAppService.GetUserEventsAsync(Guid.Parse(id));
+        List<Event> events = await _userAppService.GetUserEventsAsync(Guid.Parse(id));
 
         if (events.Count == 0)
             return NotFound("У пользователя нет ивентов");
 
-        return Ok(events);
+        return Ok(_mapper.Map<List<EventDto>>(events));
     }
 
     /// <summary>
@@ -200,7 +206,7 @@ public class AccountController : ControllerBase
         if (!(await _userAppService.GetUsersAsync())
             .Any(u => u.Username == user.Username || u.Email == user.Email || u.Id == user.Id))
         {
-            await _userAppService.CreateUserAsync(user);
+            await _userAppService.CreateUserAsync(_mapper.Map<User>(user));
 
             return Ok("Пользователь успешно добавлен");
         }
@@ -219,7 +225,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SignInAsync([FromBody] SignInRequest request)
     {
-        UserDto? user = await _authAppService.FindUserByEmailAndPasswordAsync(request.Email, request.Password);
+        User? user = await _authAppService.FindUserByEmailAndPasswordAsync(request.Email, request.Password);
 
         if (user is null)
             return BadRequest("Почта или пароль не правильные");

@@ -1,5 +1,6 @@
 ﻿using CareerPoint.Infrastructure.Enums;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
@@ -28,4 +29,7 @@ public class UserDto
     public bool IsSubscribedToNotifications { get; set; }
 
     public UserRole UserRole { get; set; }
+
+    [MaxLength(1024 * 1024 * 5)]
+    public byte[]? Avatar { get; set; }
 }

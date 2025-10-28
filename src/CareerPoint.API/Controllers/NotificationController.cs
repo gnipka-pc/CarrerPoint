@@ -1,5 +1,7 @@
-﻿using CareerPoint.Infrastructure.DTOs;
+﻿using AutoMapper;
+using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,15 +14,18 @@ namespace CareerPoint.Web.Controllers;
 public class NotificationController : ControllerBase
 {
     readonly INotificationAppService _notificationAppService;
+    readonly IMapper _mapper;
 
     /// <summary>
     /// Базовый конструктор контроллера уведомлений
     /// </summary>
     /// <param name="notificationAppService">Апп сервис уведомлений</param>
     public NotificationController(
-        INotificationAppService notificationAppService)
+        INotificationAppService notificationAppService,
+        IMapper mapper)
     {
         _notificationAppService = notificationAppService;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -34,12 +39,12 @@ public class NotificationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetSubscribedUsersAsync()
     {
-        List<UserDto> users = await _notificationAppService.GetSubscribedUsersAsync();
+        List<User> users = await _notificationAppService.GetSubscribedUsersAsync();
 
         if (users.Count == 0)
             return NotFound("Нет подписанных пользователей");
 
-        return Ok(users);
+        return Ok(_mapper.Map<List<UserDto>>(users));
     }
 
     /// <summary>
