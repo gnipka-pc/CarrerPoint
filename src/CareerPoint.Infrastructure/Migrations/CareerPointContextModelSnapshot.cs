@@ -41,7 +41,7 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.User", b =>
@@ -49,9 +49,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
-
-                    b.Property<byte[]>("Avatar")
-                        .HasColumnType("longblob");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -96,7 +93,7 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("EventUser", b =>
@@ -111,7 +108,7 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("EventUser");
+                    b.ToTable("EventUser", (string)null);
                 });
 
             modelBuilder.Entity("EventUser", b =>
