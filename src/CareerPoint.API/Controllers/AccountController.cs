@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using CareerPoint.Application.Services;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Enums;
@@ -201,14 +201,12 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterUserDto user)
+    public async Task<IActionResult> RegisterAsync([FromBody] UserDto user)
     {
         if (!(await _userAppService.GetUsersAsync())
-            .Any(u => u.Username == user.Username || u.Email == user.Email))
+            .Any(u => u.Username == user.Username || u.Email == user.Email || u.Id == user.Id))
         {
-            var userEntity = _mapper.Map<User>(user);
-            userEntity.UserRole = UserRole.DefaultUser;
-            await _userAppService.CreateUserAsync(userEntity);
+            await _userAppService.CreateUserAsync(_mapper.Map<User>(user));
 
             return Ok("Пользователь успешно добавлен");
         }

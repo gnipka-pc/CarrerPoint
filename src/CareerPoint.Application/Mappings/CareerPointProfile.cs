@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Model;
 
@@ -15,12 +15,9 @@ public class CareerPointProfile : Profile
         //    .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.HashedPassword));
         //CreateMap<CreateUpdateDeleteUserDto, User>()
         //    .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
-        CreateMap<User, UserDto>();
-        CreateMap<UserDto, User>();
-
-        CreateMap<RegisterUserDto, User>()
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.HashedPassword));
+        CreateMap<UserDto, User>()
             .ForMember(dest => dest.HashedPassword, opt => opt.MapFrom(src => src.Password));
-
-        CreateMap<UpdateUserDto, User>();
     }
 }

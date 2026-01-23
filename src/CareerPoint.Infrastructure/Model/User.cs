@@ -1,4 +1,4 @@
-using CareerPoint.Infrastructure.Enums;
+﻿using CareerPoint.Infrastructure.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace CareerPoint.Infrastructure.Model;
@@ -26,18 +26,6 @@ public class User
     public required string PortfolioLink { get; set; }
 
     public bool IsSubscribedToNotifications { get; set; }
-
-    // Возраст пользователя
-    public int Age { get; set; }
-
-    // Направление обучения
-    public string Direction { get; set; } = string.Empty;
-
-    // Курс (1-6)
-    public int Course { get; set; }
-
-    // Навыки через запятую
-    public string Skills { get; set; } = string.Empty;
 
     public UserRole UserRole { get; set; }
 
