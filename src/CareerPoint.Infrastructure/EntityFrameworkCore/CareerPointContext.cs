@@ -1,4 +1,4 @@
-﻿using CareerPoint.Infrastructure.Model;
+using CareerPoint.Infrastructure.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerPoint.Infrastructure.EntityFrameworkCore;
@@ -15,7 +15,7 @@ public class CareerPointContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        string connectionString = "server=localhost;port=3306;user=root;password=CyEnREzXX12b;database=CareerPoint;AllowPublicKeyRetrieval=True;SslMode=None;";
+        string connectionString = "server=localhost;port=3306;user=root;password=qwe126asA;database=CareerPoint;AllowPublicKeyRetrieval=True;SslMode=None;";
 
         optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
     }

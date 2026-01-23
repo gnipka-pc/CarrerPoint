@@ -2,10 +2,8 @@ using CareerPoint.Infrastructure.Enums;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
-public class CreateUpdateDeleteUserDto
+public class RegisterUserDto
 {
-    public Guid Id { get; set; }
-
     public required string Username { get; set; }
 
     public required string Email { get; set; }
@@ -37,8 +35,4 @@ public class CreateUpdateDeleteUserDto
 
     // Навыки
     public string Skills { get; set; } = string.Empty;
-
-    public UserRole UserRole { get; set; }
-
-    public byte[]? Avatar { get; set; }
 }
