@@ -31,13 +31,13 @@ public class User
     public int Age { get; set; }
 
     // Направление обучения
-    public string Direction { get; set; } = string.Empty;
+    public Direction Direction { get; set; }
 
-    // Курс (1-6)
-    public int Course { get; set; }
+    // Курс (1-4)
+    public Course Course { get; set; }
 
-    // Навыки через запятую
-    public string Skills { get; set; } = string.Empty;
+    // Навыки
+    public string[] Skills { get; set; } = Array.Empty<string>();
 
     public UserRole UserRole { get; set; }
 

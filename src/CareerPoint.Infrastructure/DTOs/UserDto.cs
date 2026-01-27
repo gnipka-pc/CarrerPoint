@@ -28,13 +28,13 @@ public class UserDto
     public int Age { get; set; }
 
     // Направление
-    public string Direction { get; set; } = string.Empty;
+    public Direction Direction { get; set; }
 
     // Курс
-    public int Course { get; set; }
+    public Course Course { get; set; }
 
     // Навыки
-    public string Skills { get; set; } = string.Empty;
+    public string[] Skills { get; set; } = Array.Empty<string>();
 
     public UserRole UserRole { get; set; }
 }
