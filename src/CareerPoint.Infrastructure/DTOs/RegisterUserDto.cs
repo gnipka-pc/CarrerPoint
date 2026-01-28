@@ -1,17 +1,14 @@
 using CareerPoint.Infrastructure.Enums;
-using Microsoft.AspNetCore.Identity;
 
-namespace CareerPoint.Infrastructure.Model;
+namespace CareerPoint.Infrastructure.DTOs;
 
-public class User
+public class RegisterUserDto
 {
-    public Guid Id { get; set; }
-
     public required string Username { get; set; }
 
     public required string Email { get; set; }
 
-    public required string HashedPassword { get; set; }
+    public required string Password { get; set; }
 
     public required string Name { get; set; }
 
@@ -27,19 +24,15 @@ public class User
 
     public bool IsSubscribedToNotifications { get; set; }
 
-    // Возраст пользователя
+    // Возраст
     public int Age { get; set; }
 
-    // Направление обучения
+    // Направление
     public Direction Direction { get; set; }
 
-    // Курс (1-4)
+    // Курс
     public Course Course { get; set; }
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
-
-    public UserRole UserRole { get; set; }
-
-    public List<Event> Events { get; set; } = new();
 }

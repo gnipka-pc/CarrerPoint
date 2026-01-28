@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CareerPoint.Application.Services;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Enums;
@@ -12,9 +12,7 @@ using System.Security.Claims;
 
 namespace CareerPoint.Web.Controllers;
 
-/// <summary>
-/// Контроллер пользователей
-/// </summary>
+
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
@@ -23,14 +21,8 @@ public class AccountController : ControllerBase
     readonly IAuthAppService _authAppService;
     readonly IUserAppService _userAppService;
     readonly IMapper _mapper;
-
-    /// <summary>
-    /// Базовый конструктор контроллера пользователей
-    /// </summary>
-    /// <param name="authAppService">Апп сервис аутентификации</param>
-    /// <param name="userAppService">Апп сервис пользователей</param>
-    /// <param name="mapper">Автомаппер</param>
-    public AccountController(
+    
+       public AccountController(
         IAuthAppService authAppService,
         IUserAppService userAppService,
         IMapper mapper)
@@ -40,10 +32,7 @@ public class AccountController : ControllerBase
         _mapper = mapper;
     }
 
-    /// <summary>
-    /// Возвращает пользователя по его Id
-    /// </summary>
-    /// <returns>Пользователь</returns>
+   
     [Authorize]
     [HttpGet("get-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -66,10 +55,7 @@ public class AccountController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
-    /// <summary>
-    /// Удаляет пользователя
-    /// </summary>
-    /// <returns></returns>
+    
     [Authorize]
     [HttpDelete("delete-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -92,11 +78,7 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно удален");
     }
 
-    /// <summary>
-    /// Обновляет пользователя
-    /// </summary>
-    /// <param name="userDto">Пользователь</param>
-    /// <returns></returns>
+    
     [Authorize]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -119,11 +101,8 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно изменен");
     }
 
-    /// <summary>
+    
     /// Добавляет ивент пользователю по айди
-    /// </summary>
-    /// <param name="eventId">Айди ивента</param>
-    /// <returns></returns>
     [Authorize]
     [HttpPut("add-event-to-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -144,11 +123,8 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось добавить ивент пользователю");
     }
 
-    /// <summary>
+
     /// Удаляет ивент у пользователя по айди
-    /// </summary>
-    /// <param name="eventId">Айди ивента</param>
-    /// <returns></returns>
     [Authorize]
     [HttpPut("remove-event-from-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -169,10 +145,7 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось удалить ивент у пользователя");
     }
 
-    /// <summary>
     /// Получает ивенты пользователя
-    /// </summary>
-    /// <returns>Список ивентов</returns>
     [Authorize]
     [HttpGet("get-user-events")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -193,20 +166,19 @@ public class AccountController : ControllerBase
         return Ok(_mapper.Map<List<EventDto>>(events));
     }
 
-    /// <summary>
+   
     /// Регистрация пользователя
-    /// </summary>
-    /// <param name="user">Пользователь</param>
-    /// <returns></returns>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterAsync([FromBody] UserDto user)
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterUserDto user)
     {
         if (!(await _userAppService.GetUsersAsync())
-            .Any(u => u.Username == user.Username || u.Email == user.Email || u.Id == user.Id))
+            .Any(u => u.Username == user.Username || u.Email == user.Email))
         {
-            await _userAppService.CreateUserAsync(_mapper.Map<User>(user));
+            var userEntity = _mapper.Map<User>(user);
+            userEntity.UserRole = UserRole.DefaultUser;
+            await _userAppService.CreateUserAsync(userEntity);
 
             return Ok("Пользователь успешно добавлен");
         }
@@ -214,6 +186,7 @@ public class AccountController : ControllerBase
         return BadRequest("Пользователь с данной почтой или логином уже существует");
     }
 
+    
     /// <summary>
     /// Вход в аккаунт
     /// </summary>
