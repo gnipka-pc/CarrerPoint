@@ -187,7 +187,12 @@ public class AccountController : ControllerBase
     }
 
     
+    /// <summary>
     /// Вход в аккаунт
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedAccessException">Если роль не существует, то выбрасывается ошибка</exception>
     [HttpPost("sign-in")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -227,8 +232,10 @@ public class AccountController : ControllerBase
         return Ok("Вы успешно вошли в аккаунт");
     }
 
-    
+    /// <summary>
     /// Выход из аккаунта
+    /// </summary>
+    /// <returns></returns>
     [Authorize]
     [HttpGet("sign-out")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -241,5 +248,9 @@ public class AccountController : ControllerBase
     }
 }
 
-
+/// <summary>
+/// Запрос на вход в аккаунт
+/// </summary>
+/// <param name="Email">Почта</param>
+/// <param name="Password">Пароль</param>
 public record SignInRequest(string Email, string Password);
