@@ -32,8 +32,8 @@ public class AccountController : ControllerBase
         _mapper = mapper;
     }
 
-   
-    [Authorize]
+
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -55,8 +55,8 @@ public class AccountController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
-    
-    [Authorize]
+
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpDelete("delete-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -78,8 +78,8 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно удален");
     }
 
-    
-    [Authorize]
+
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -101,9 +101,9 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно изменен");
     }
 
-    
+
     /// Добавляет ивент пользователю по айди
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("add-event-to-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -125,7 +125,7 @@ public class AccountController : ControllerBase
 
 
     /// Удаляет ивент у пользователя по айди
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("remove-event-from-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -146,7 +146,7 @@ public class AccountController : ControllerBase
     }
 
     /// Получает ивенты пользователя
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-user-events")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -236,7 +236,7 @@ public class AccountController : ControllerBase
     /// Выход из аккаунта
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("sign-out")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
