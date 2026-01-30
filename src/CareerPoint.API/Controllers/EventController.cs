@@ -28,6 +28,7 @@ public class EventController : ControllerBase
     /// </summary>
     /// <param name="id">Айди ивента</param>
     /// <returns>Ивент</returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-event/{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -45,6 +46,7 @@ public class EventController : ControllerBase
     /// Получение списка ивентов
     /// </summary>
     /// <returns>Список ивентов</returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-events")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEventsAsync()
