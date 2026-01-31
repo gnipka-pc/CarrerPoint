@@ -37,4 +37,6 @@ public class UserDto
     public string[] Skills { get; set; } = Array.Empty<string>();
 
     public UserRole UserRole { get; set; }
+
+    public string? AvatarUrl { get; set; }
 }
