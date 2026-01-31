@@ -7,6 +7,7 @@ using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Minio;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -31,7 +32,22 @@ public class Program
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
 
-        builder.Services.AddDbContext<CareerPointContext>();
+        builder.Services.AddDbContext<CareerPointContext>(options =>
+        {
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Conenction string is empty");
+
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+        });
+
+        builder.Services.AddMinio(options =>
+        {
+            var section = builder.Configuration.GetSection("Minio");
+            options
+                .WithEndpoint(section["Endpoint"])
+                .WithCredentials(section["AccessKey"], section["SecretKey"])
+                .WithSSL(bool.Parse(section["UseSsl"] ?? throw new InvalidOperationException("Ssl параметр не задан")))
+                .Build();
+        });
 
         builder.Services.AddTransient<IEventAppService, EventAppService>();
         builder.Services.AddTransient<IUserAppService, UserAppService>();
@@ -67,7 +83,6 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
-
 
         app.MapControllers();
 

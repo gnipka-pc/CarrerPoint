@@ -9,15 +9,8 @@ public class CareerPointContext : DbContext
 
     public DbSet<Event> Events { get; set; }
 
-    //public CareerPointContext(DbContextOptions<CareerPointContext> options) : base(options)
-    //{
-    //}
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public CareerPointContext(DbContextOptions<CareerPointContext> options) : base(options)
     {
-        string connectionString = "server=localhost;port=3306;user=root;password=qwe126asA;database=CareerPoint;AllowPublicKeyRetrieval=True;SslMode=None;";
-
-        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
