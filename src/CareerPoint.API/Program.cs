@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.EntityFrameworkCore;
 using CareerPoint.Infrastructure.Interfaces;
 using CareerPoint.Infrastructure.Model;
+using CareerPoint.Web.HostedServices;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ public class Program
 
         // Add services to the container.
 
+        //builder.Services.AddProblemDetails();
         builder.Services.AddControllers().AddJsonOptions(options => 
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -67,8 +69,13 @@ public class Program
             });
         builder.Services.AddAuthorization();
 
-        var app = builder.Build();
+        builder.Services.AddHostedService(f =>
+        {
+            string BucketName = builder.Configuration.GetSection("Minio")["BucketName"] ?? "avatars";
+            return new MinioBucketInitializerHostedService(f.GetRequiredService<IMinioClient>(), BucketName);
+        });
 
+        var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
         {

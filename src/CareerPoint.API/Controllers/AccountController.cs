@@ -62,9 +62,6 @@ public class AccountController : ControllerBase
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         UserDto? user = _mapper.Map<UserDto>(await _userAppService.GetUserByIdAsync(Guid.Parse(id)));
 
         if (user != null)
@@ -88,9 +85,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> DeleteAccountAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
@@ -117,9 +111,6 @@ public class AccountController : ControllerBase
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
@@ -145,9 +136,6 @@ public class AccountController : ControllerBase
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         bool isSucсess = await _userAppService.AddEventToUserAsync(Guid.Parse(id), eventId);
 
         if (isSucсess)
@@ -171,9 +159,6 @@ public class AccountController : ControllerBase
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         bool isSucess = await _userAppService.RemoveEventFromUserAsync(Guid.Parse(id), eventId);
 
         if (isSucess)
@@ -194,9 +179,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetUserEventsAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         List<Event> events = await _userAppService.GetUserEventsAsync(Guid.Parse(id));
 
@@ -297,7 +279,7 @@ public class AccountController : ControllerBase
     /// <param name="file">Файл аватарки</param>
     /// <returns></returns>
     [Authorize]
-    [HttpPut]
+    [HttpPut("change-avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -316,18 +298,10 @@ public class AccountController : ControllerBase
 
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
             return NotFound("Пользователь не найден");
-
-        bool found = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName));
-
-        if (!found)
-            await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName));
 
         using Stream stream = file.OpenReadStream();
         await _minioClient.PutObjectAsync(new PutObjectArgs()
@@ -347,21 +321,13 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <returns>Файл аватара</returns>
     [Authorize]
-    [HttpGet]
+    [HttpGet("get-avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetAvatar()
+    public async Task<IActionResult> GetAvatarAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
-        bool found = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName));
-
-        if (!found)
-            return NotFound("У вас нет аватара");
         
         try
         {
@@ -393,21 +359,13 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [Authorize]
-    [HttpDelete]
+    [HttpDelete("delete-avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> DeleteAvatar()
+    public async Task<IActionResult> DeleteAvatarAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
-        bool found = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName));
-
-        if (!found)
-            return NotFound("У вас нет аватара");
 
         try
         {
@@ -426,6 +384,27 @@ public class AccountController : ControllerBase
         {
             return NotFound("У вас нет аватара");
         }
+    }
+
+    /// <summary>
+    /// Удаляет бакет по названию
+    /// </summary>
+    /// <param name="bucketName">Название бакета</param>
+    /// <returns></returns>
+    [Authorize]
+    [HttpDelete("delete-bucket")]
+    public async Task<IActionResult> DeleteBucketAsync(string bucketName)
+    {
+        bool isExists = await _minioClient.BucketExistsAsync(
+                new BucketExistsArgs().WithBucket(bucketName));
+
+        if (!isExists)
+            return NotFound("Бакет не найден");
+
+        await _minioClient.RemoveBucketAsync(
+            new RemoveBucketArgs().WithBucket(bucketName));
+
+        return Ok("Бакет удален");
     }
 }
 
