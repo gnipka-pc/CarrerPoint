@@ -1,5 +1,7 @@
-﻿using CareerPoint.Infrastructure.DTOs;
+﻿using AutoMapper;
+using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -118,5 +120,32 @@ public class EventController : ControllerBase
         }
             
         return NotFound("Ивент с данным id не был найден");
+    }
+
+
+    /// <summary>
+    /// Получение событий пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <param name="userAppService">Сервис пользователей</param>
+    /// <param name="mapper">Маппер</param>
+    /// <returns>Список событий пользователя</returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-user-events/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserEventsForManagerAsync(
+        Guid userId,
+        [FromServices] IUserAppService userAppService,
+        [FromServices] IMapper mapper)
+    {
+        List<Event> events = await userAppService.GetUserEventsAsync(userId);
+
+        if (events.Count == 0)
+            return NotFound("У пользователя нет ивентов");
+
+        return Ok(mapper.Map<List<EventDto>>(events));
     }
 }

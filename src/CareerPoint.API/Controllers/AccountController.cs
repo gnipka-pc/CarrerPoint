@@ -246,6 +246,59 @@ public class AccountController : ControllerBase
 
         return Ok("Вы успешно вышли из аккаунта");
     }
+
+    /// <summary>
+    /// Удаление пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя для удаления</param>
+    /// <returns></returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpDelete("delete-user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUserAsync(Guid userId)
+    {
+        User? user = await _userAppService.GetUserByIdAsync(userId);
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        await _userAppService.DeleteUserAsync(user);
+
+        return Ok("Пользователь успешно удален");
+    }
+
+    /// <summary>
+    /// Обновление данных пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <param name="userDto">Новые данные</param>
+    /// <returns></returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpPut("update-user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateUserAsync(Guid userId, [FromBody] UserDto userDto)
+    {
+        // Проверяем, что пользователь существует
+        User? existingUser = await _userAppService.GetUserByIdAsync(userId);
+        if (existingUser is null)
+            return NotFound("Пользователь не найден");
+
+        // Обновляем только разрешенные поля
+        // (не меняем пароль и ID)
+        existingUser.Username = userDto.Username;
+        existingUser.Email = userDto.Email;
+
+        await _userAppService.UpdateUserAsync(existingUser);
+
+        return Ok("Данные пользователя успешно обновлены");
+    }
 }
 
 /// <summary>
