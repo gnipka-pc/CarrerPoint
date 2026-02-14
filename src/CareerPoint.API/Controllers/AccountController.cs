@@ -79,7 +79,7 @@ public class AccountController : ControllerBase
     }
 
 
-    [Authorize(Roles = "DefaultUser,Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
