@@ -303,17 +303,25 @@ public class AccountController : ControllerBase
         if (user is null)
             return NotFound("Пользователь не найден");
 
-        using Stream stream = file.OpenReadStream();
-        await _minioClient.PutObjectAsync(new PutObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(id)
-            .WithStreamData(stream)
-            .WithObjectSize(file.Length)
-            .WithContentType(file.ContentType));
+        try
+        {
+            using Stream stream = file.OpenReadStream();
+            await _minioClient.PutObjectAsync(new PutObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(id)
+                .WithStreamData(stream)
+                .WithObjectSize(file.Length)
+                .WithContentType(file.ContentType));
 
-        await _userAppService.UpdateUserAsync(user);
+            await _userAppService.UpdateUserAsync(user);
 
-        return Ok("Аватарка успешно добавлена");
+            return Ok("Аватарка успешно добавлена");
+        }
+        catch (Exception)
+        {
+            return BadRequest("Minio не запущен");
+        }
+        
     }
 
     /// <summary>
@@ -350,7 +358,7 @@ public class AccountController : ControllerBase
         } 
         catch
         {
-            return NotFound("У вас нет аватара");
+            return NotFound("У вас нет аватара или Minio не запущен");
         }
     }
 
@@ -382,30 +390,32 @@ public class AccountController : ControllerBase
         }
         catch
         {
-            return NotFound("У вас нет аватара");
+            return NotFound("У вас нет аватара или Minio не запущен");
         }
     }
 
-    /// <summary>
-    /// Удаляет бакет по названию
-    /// </summary>
-    /// <param name="bucketName">Название бакета</param>
-    /// <returns></returns>
-    [Authorize]
-    [HttpDelete("delete-bucket")]
-    public async Task<IActionResult> DeleteBucketAsync(string bucketName)
-    {
-        bool isExists = await _minioClient.BucketExistsAsync(
-                new BucketExistsArgs().WithBucket(bucketName));
+    // оставил для тестирования
 
-        if (!isExists)
-            return NotFound("Бакет не найден");
+    ///// <summary>
+    ///// Удаляет бакет по названию
+    ///// </summary>
+    ///// <param name="bucketName">Название бакета</param>
+    ///// <returns></returns>
+    //[Authorize]
+    //[HttpDelete("delete-bucket")]
+    //public async Task<IActionResult> DeleteBucketAsync(string bucketName)
+    //{
+    //    bool isExists = await _minioClient.BucketExistsAsync(
+    //            new BucketExistsArgs().WithBucket(bucketName));
 
-        await _minioClient.RemoveBucketAsync(
-            new RemoveBucketArgs().WithBucket(bucketName));
+    //    if (!isExists)
+    //        return NotFound("Бакет не найден");
 
-        return Ok("Бакет удален");
-    }
+    //    await _minioClient.RemoveBucketAsync(
+    //        new RemoveBucketArgs().WithBucket(bucketName));
+
+    //    return Ok("Бакет удален");
+    //}
 }
 
 /// <summary>

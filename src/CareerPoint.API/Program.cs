@@ -47,7 +47,7 @@ public class Program
             options
                 .WithEndpoint(section["Endpoint"])
                 .WithCredentials(section["AccessKey"], section["SecretKey"])
-                .WithSSL(bool.Parse(section["UseSsl"] ?? throw new InvalidOperationException("Ssl параметр не задан")))
+                .WithSSL(bool.Parse(section["UseSsl"]!))
                 .Build();
         });
 
@@ -71,8 +71,8 @@ public class Program
 
         builder.Services.AddHostedService(f =>
         {
-            string BucketName = builder.Configuration.GetSection("Minio")["BucketName"] ?? "avatars";
-            return new MinioBucketInitializerHostedService(f.GetRequiredService<IMinioClient>(), BucketName);
+            string BucketName = builder.Configuration.GetSection("Minio")["BucketName"]!;
+            return new MinioBucketInitializerHostedService(f.GetRequiredService<IMinioClient>(), BucketName, f.GetRequiredService<ILogger<MinioBucketInitializerHostedService>>());
         });
 
         var app = builder.Build();
