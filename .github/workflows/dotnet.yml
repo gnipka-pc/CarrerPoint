@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/CareerPoint:latest src
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest src
       
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/CareerPoint:latest
