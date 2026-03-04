@@ -2,7 +2,9 @@ name: build .NET and deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - devops/ci-cd
   workflow_dispatch:
 
 jobs:
