@@ -44,7 +44,7 @@ jobs:
         run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest .
       
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/CareerPoint:latest
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest
     
     # -------- 3 PHASE --------
 
