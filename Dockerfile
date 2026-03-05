@@ -8,9 +8,9 @@ COPY tests/CareerPoint.Application.Tests/*.csproj ./tests/CareerPoint.Applicatio
 
 RUN dotnet restore CareerPoint.sln
 
-COPY . ./
+COPY . .
 
-RUN dotnet publish ./src/CareerPoint.API/CareerPoint.Web.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish ./src/src/src/CareerPoint.API/CareerPoint.Web.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
