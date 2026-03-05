@@ -65,7 +65,6 @@ jobs:
             docker run -d -p 8070:8070 --name CareerPoint ${{ secrets.DOCKER_HUB_PASSWORD }}/CareerPoint:latest
 
 
-
       # - name: Create file
       #   run: echo "Test" >> test.txt
       
