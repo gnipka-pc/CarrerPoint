@@ -1,6 +1,6 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY CareerPoint.sln ./
+COPY CareerPoint.sln .
 COPY src/CareerPoint.API/*.csproj ./src/CareerPoint.API/
 COPY src/CareerPoint.Application/*.csproj ./src/CareerPoint.Application/
 COPY src/CareerPoint.Infrastructure/*.csproj ./src/CareerPoint.Infrastructure/
