@@ -4,7 +4,7 @@ COPY CareerPoint.sln ./
 COPY src/CareerPoint.API/*.csproj ./src/CareerPoint.API/
 COPY src/CareerPoint.Application/*.csproj ./src/CareerPoint.Application/
 COPY src/CareerPoint.Infrastructure/*.csproj ./src/CareerPoint.Infrastructure/
-COPY tests/CareerPoint.Application.Tests/CareerPoint.Application.Tests.csproj tests/CareerPoint.Application.Tests/
+COPY tests/CareerPoint.Application.Tests/*.csproj ./tests/CareerPoint.Application.Tests/
 
 RUN dotnet restore CareerPoint.sln
 
