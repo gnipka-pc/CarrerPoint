@@ -62,7 +62,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest
             docker stop careerpoint || true
             docker rm careerpoint || true
-            docker run -d -p 8070:8070 --name careerpoint ${{ secrets.DOCKER_HUB_PASSWORD }}/career-point:latest
+            docker run -d -p 8070:8070 --name careerpoint ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest
 
 
       # - name: Create file
