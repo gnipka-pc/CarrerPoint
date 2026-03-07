@@ -57,7 +57,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
+          port: 49478
           script: |
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/CareerPoint:latest
             docker stop CareerPoint || true
