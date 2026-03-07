@@ -59,10 +59,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 49478
           script: |
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/CareerPoint:latest
-            docker stop CareerPoint || true
-            docker rm CareerPoint || true
-            docker run -d -p 8070:8070 --name CareerPoint ${{ secrets.DOCKER_HUB_PASSWORD }}/CareerPoint:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/career-point:latest
+            docker stop career-point || true
+            docker rm career-point || true
+            docker run -d -p 8070:8070 --name career-point ${{ secrets.DOCKER_HUB_PASSWORD }}/career-point:latest
 
 
       # - name: Create file
