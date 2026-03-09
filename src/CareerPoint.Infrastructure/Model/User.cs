@@ -42,4 +42,6 @@ public class User
     public UserRole UserRole { get; set; }
 
     public List<Event> Events { get; set; } = new();
+
+    public string? AvatarUrl { get; set; }
 }
