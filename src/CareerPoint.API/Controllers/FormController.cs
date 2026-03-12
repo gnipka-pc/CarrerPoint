@@ -24,8 +24,6 @@ public class FormController : ControllerBase
     }
 
 
-    //МЕНЕДЖЕР
-
     /// <summary>
     /// Создание формы регистрации для мероприятия
     /// </summary>

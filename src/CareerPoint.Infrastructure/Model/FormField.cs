@@ -13,13 +13,11 @@ public class FormField
 
     public Form? Form { get; set; }
 
-    /// <summary>Уникальный ключ поля внутри формы (например: "firstName", "groupNumber")</summary>
-    public required string Key { get; set; }
+    /// <summary>Текст вопроса</summary>
+    public required string Text { get; set; }
 
-    /// <summary>Отображаемое название поля</summary>
-    public required string Label { get; set; }
-
-    public string? Placeholder { get; set; }
+    /// <summary>Дополнительное объяснение к вопросу</summary>
+    public string? Description { get; set; }
 
     public FieldType Type { get; set; }
 
@@ -28,9 +26,6 @@ public class FormField
     /// <summary>Порядок отображения поля</summary>
     public int Order { get; set; } = 0;
 
-    /// <summary>
-    /// Варианты ответов для Select / Radio / Checkbox-полей.
-    /// Хранится как строка через запятую: "Вариант 1,Вариант 2"
-    /// </summary>
-    public string? Options { get; set; }
+    /// <summary>Варианты ответов для Select / Radio / Checkbox-полей</summary>
+    public List<QuestionOption> Options { get; set; } = new();
 }

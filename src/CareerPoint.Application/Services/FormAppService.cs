@@ -78,6 +78,7 @@ public class FormAppService : IFormAppService
     {
         Form? form = await _context.Forms
             .Include(f => f.Fields.OrderBy(ff => ff.Order))
+                .ThenInclude(ff => ff.Options.OrderBy(o => o.OrderIndex))
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.EventId == eventId);
 
@@ -89,6 +90,7 @@ public class FormAppService : IFormAppService
     {
         Form form = await _context.Forms
             .Include(f => f.Fields)
+                .ThenInclude(ff => ff.Options)
             .Include(f => f.Submissions)
                 .ThenInclude(s => s.Answers)
                     .ThenInclude(a => a.Field)
@@ -144,12 +146,12 @@ public class FormAppService : IFormAppService
 
         if (missingIds.Count > 0)
         {
-            var missingKeys = form.Fields
+            var missingTexts = form.Fields
                 .Where(f => missingIds.Contains(f.Id))
-                .Select(f => f.Key);
+                .Select(f => f.Text);
 
             throw new InvalidOperationException(
-                $"Не заполнены обязательные поля: {string.Join(", ", missingKeys)}");
+                $"Не заполнены обязательные поля: {string.Join(", ", missingTexts)}");
         }
 
         var validFieldIds = form.Fields.Select(f => f.Id).ToHashSet();
@@ -216,8 +218,7 @@ public class FormAppService : IFormAppService
                 .Select(a => new FilledFieldDto
                 {
                     FieldId = a.FieldId,
-                    Key = fieldMap[a.FieldId].Key,
-                    Label = fieldMap[a.FieldId].Label,
+                    Text = fieldMap[a.FieldId].Text,
                     Value = a.Value
                 })
                 .ToList()
@@ -232,25 +233,35 @@ public class FormAppService : IFormAppService
     {
         return await _context.Forms
             .Include(f => f.Fields)
+                .ThenInclude(ff => ff.Options)
             .FirstOrDefaultAsync(f => f.Id == formId)
             ?? throw new KeyNotFoundException($"Форма {formId} не найдена.");
     }
 
     private static List<FormField> MapFields(List<FormFieldDto> dtos, Guid formId)
     {
-        return dtos.Select(dto => new FormField
+        return dtos.Select(dto =>
         {
-            Id = Guid.NewGuid(),
-            FormId = formId,
-            Key = dto.Key,
-            Label = dto.Label,
-            Placeholder = dto.Placeholder,
-            Type = dto.Type,
-            IsRequired = dto.IsRequired,
-            Order = dto.Order,
-            Options = dto.Options is { Count: > 0 }
-                ? string.Join(",", dto.Options)
-                : null
+            var fieldId = Guid.NewGuid();
+            return new FormField
+            {
+                Id = fieldId,
+                FormId = formId,
+                Text = dto.Text,
+                Description = dto.Description,
+                Type = dto.Type,
+                IsRequired = dto.IsRequired,
+                Order = dto.Order,
+                Options = dto.Options is { Count: > 0 }
+                    ? dto.Options.Select((text, index) => new QuestionOption
+                    {
+                        Id = Guid.NewGuid(),
+                        QuestionId = fieldId,
+                        Text = text,
+                        OrderIndex = index
+                    }).ToList()
+                    : new List<QuestionOption>()
+            };
         }).ToList();
     }
 
@@ -270,15 +281,15 @@ public class FormAppService : IFormAppService
                 .Select(f => new FormFieldResponseDto
                 {
                     Id = f.Id,
-                    Key = f.Key,
-                    Label = f.Label,
-                    Placeholder = f.Placeholder,
+                    Text = f.Text,
+                    Description = f.Description,
                     Type = f.Type,
                     IsRequired = f.IsRequired,
                     Order = f.Order,
-                    Options = f.Options is not null
-                        ? f.Options.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-                        : null
+                    Options = f.Options
+                        .OrderBy(o => o.OrderIndex)
+                        .Select(o => o.Text)
+                        .ToList()
                 })
                 .ToList()
         };
@@ -298,8 +309,7 @@ public class FormAppService : IFormAppService
             Answers = submission.Answers.Select(a => new AnswerResponseDto
             {
                 FieldId = a.FieldId,
-                FieldKey = a.Field?.Key ?? string.Empty,
-                FieldLabel = a.Field?.Label ?? string.Empty,
+                FieldText = a.Field?.Text ?? string.Empty,
                 Value = a.Value
             }).ToList()
         };

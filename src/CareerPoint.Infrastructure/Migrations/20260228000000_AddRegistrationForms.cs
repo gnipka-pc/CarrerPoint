@@ -10,7 +10,7 @@ namespace CareerPoint.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // ── Forms ────────────────────────────────────────────────────────
+            // ── Forms ─────────────────────────────────────────────────────────
             migrationBuilder.CreateTable(
                 name: "Forms",
                 columns: table => new
@@ -43,25 +43,24 @@ namespace CareerPoint.Infrastructure.Migrations
                 column: "EventId",
                 unique: true);
 
-            // ── FormFields ───────────────────────────────────────────────────
+            // ── FormFields ────────────────────────────────────────────────────
+            // Text  — текст вопроса (бывший Label)
+            // Description — подсказка к вопросу (бывший Placeholder)
+            // Key убран, Options вынесены в отдельную таблицу QuestionOptions
             migrationBuilder.CreateTable(
                 name: "FormFields",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     FormId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Key = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false)
+                    Text = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Label = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Placeholder = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                    Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Type = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsRequired = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    Order = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Options = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Order = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
                 {
@@ -76,12 +75,39 @@ namespace CareerPoint.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FormFields_FormId_Key",
+                name: "IX_FormFields_FormId",
                 table: "FormFields",
-                columns: new[] { "FormId", "Key" },
-                unique: true);
+                column: "FormId");
 
-            // ── FormSubmissions ──────────────────────────────────────────────
+            // ── QuestionOptions ───────────────────────────────────────────────
+            migrationBuilder.CreateTable(
+                name: "QuestionOptions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    QuestionId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Text = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QuestionOptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_QuestionOptions_FormFields_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "FormFields",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QuestionOptions_QuestionId",
+                table: "QuestionOptions",
+                column: "QuestionId");
+
+            // ── FormSubmissions ───────────────────────────────────────────────
             migrationBuilder.CreateTable(
                 name: "FormSubmissions",
                 columns: table => new
@@ -120,7 +146,7 @@ namespace CareerPoint.Infrastructure.Migrations
                 table: "FormSubmissions",
                 column: "StudentId");
 
-            // ── SubmissionAnswers ────────────────────────────────────────────
+            // ── SubmissionAnswers ─────────────────────────────────────────────
             migrationBuilder.CreateTable(
                 name: "SubmissionAnswers",
                 columns: table => new
@@ -165,6 +191,7 @@ namespace CareerPoint.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(name: "SubmissionAnswers");
             migrationBuilder.DropTable(name: "FormSubmissions");
+            migrationBuilder.DropTable(name: "QuestionOptions");
             migrationBuilder.DropTable(name: "FormFields");
             migrationBuilder.DropTable(name: "Forms");
         }
