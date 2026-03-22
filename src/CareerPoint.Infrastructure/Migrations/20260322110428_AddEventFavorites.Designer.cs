@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    [Migration("20260302170933_AddEventFavorites")]
+    [Migration("20260322110428_AddEventFavorites")]
     partial class AddEventFavorites
     {
         /// <inheritdoc />
@@ -58,13 +58,11 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("UTC_TIMESTAMP()");
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP()");
 
                     b.HasKey("UserId", "EventId");
 
                     b.HasIndex("EventId");
-
-                    b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("EventFavorites");
                 });
@@ -77,6 +75,9 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.Property<int>("Age")
                         .HasColumnType("int");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Course")
                         .HasColumnType("int");
