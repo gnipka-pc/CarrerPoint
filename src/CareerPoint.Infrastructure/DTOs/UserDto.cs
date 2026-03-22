@@ -35,6 +35,13 @@ public class UserDto
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
+    public string Direction { get; set; } = string.Empty;
+
+    // Курс
+    public int Course { get; set; }
+
+    // Навыки
+    public string Skills { get; set; } = string.Empty;
 
     public UserRole UserRole { get; set; }
 

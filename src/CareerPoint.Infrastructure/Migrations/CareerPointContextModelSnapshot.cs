@@ -17,7 +17,7 @@ namespace CareerPoint.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.20")
+                .HasAnnotation("ProductVersion", "8.0.22")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -53,9 +53,12 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
+<<<<<<< Updated upstream
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("longtext");
 
+=======
+>>>>>>> Stashed changes
                     b.Property<int>("Course")
                         .HasColumnType("int");
 
@@ -63,8 +66,14 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+<<<<<<< Updated upstream
                     b.Property<int>("Direction")
                         .HasColumnType("int");
+=======
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+>>>>>>> Stashed changes
 
                     b.Property<string>("Email")
                         .IsRequired()

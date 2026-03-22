@@ -20,6 +20,11 @@ public class UpdateUserDto
     //
     // public required string PortfolioLink { get; set; }
         
+
+    public required string TelegramLink { get; set; }
+
+    public required string PortfolioLink { get; set; }
+
     public bool IsSubscribedToNotifications { get; set; }
 
     // Возраст
@@ -33,4 +38,11 @@ public class UpdateUserDto
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();           
+    public string Direction { get; set; } = string.Empty;
+
+    // Курс
+    public int Course { get; set; }
+
+    // Навыки
+    public string Skills { get; set; } = string.Empty;
 }
