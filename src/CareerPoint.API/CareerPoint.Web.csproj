@@ -13,13 +13,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Minio" Version="7.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageReference Include="Minio" Version="7.0.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CareerPoint.Application\CareerPoint.Application.csproj" />
-        <ProjectReference Include="..\CareerPoint.Infrastructure\CareerPoint.Infrastructure.csproj" />
+        <ProjectReference Include="..\CareerPoint.Application\CareerPoint.Application.csproj"/>
+        <ProjectReference Include="..\CareerPoint.Infrastructure\CareerPoint.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>
