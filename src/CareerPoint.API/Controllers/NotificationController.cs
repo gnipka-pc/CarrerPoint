@@ -51,7 +51,7 @@ public class NotificationController : ControllerBase
     /// Подписка пользователя на уведомления
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("subscribe-to-notifications")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -75,7 +75,7 @@ public class NotificationController : ControllerBase
     /// Отписка пользователя от уведомлений
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("unsubscribe-from-notifications")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
