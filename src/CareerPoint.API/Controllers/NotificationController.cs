@@ -14,7 +14,8 @@ namespace CareerPoint.Web.Controllers;
 public class NotificationController : ControllerBase
 {
     readonly INotificationAppService _notificationAppService;
-    readonly IMapper _mapper;
+    private readonly IMapper _mapper;
+    
 
     /// <summary>
     /// Базовый конструктор контроллера уведомлений
@@ -32,11 +33,19 @@ public class NotificationController : ControllerBase
     /// Получение списка подписанных на уведомления пользователей
     /// </summary>
     /// <returns>Список пользователей</returns>
+    // [Authorize(Roles = "Manager")]
+    // [HttpGet("get-subscribed-users")]
+    // [ProducesResponseType(StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status404NotFound)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
     [Authorize(Roles = "Manager")]
-    [HttpGet("get-subscribed-users")]
+    [HttpGet("get-subscribes-users")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
+  
     public async Task<IActionResult> GetSubscribedUsersAsync()
     {
         List<User> users = await _notificationAppService.GetSubscribedUsersAsync();
@@ -51,7 +60,7 @@ public class NotificationController : ControllerBase
     /// Подписка пользователя на уведомления
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("subscribe-to-notifications")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -70,12 +79,12 @@ public class NotificationController : ControllerBase
         
         return BadRequest("Пользователь уже подписан на уведомления");
     }
-
+    
     /// <summary>
     /// Отписка пользователя от уведомлений
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("unsubscribe-from-notifications")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,7 +99,9 @@ public class NotificationController : ControllerBase
         bool isSucess = await _notificationAppService.UnsubscribeFromNotificationsAsync(userId);
         if (isSucess)
             return Ok("Пользователь успешно отписался от уведомлений");
-
+        
         return BadRequest("Пользователь уже отписан от уведомлений");
+        
     }
+        
 }

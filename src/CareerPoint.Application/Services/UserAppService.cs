@@ -78,8 +78,8 @@ public class UserAppService : IUserAppService
         User? user = await _users.Include(u => u.Events).FirstOrDefaultAsync(u => u.Id == userId);
         Event? ev = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
 
-        if (user is null || ev is null)
-            return false;
+       
+        
 
         if (!user.Events.Any(e => e.Id == eventId))
             return false;
@@ -87,6 +87,8 @@ public class UserAppService : IUserAppService
         user.Events.Remove(ev);
         await _context.SaveChangesAsync();
 
+     
+        
         return true;
     }
 

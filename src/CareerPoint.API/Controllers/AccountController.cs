@@ -8,11 +8,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Minio;
+using Minio.DataModel;
+using Minio.DataModel.Args;
+using System.Security.AccessControl;
 using System.Security.Claims;
 
 namespace CareerPoint.Web.Controllers;
 
-
+/// <summary>
+/// Контроллер пользователей
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
@@ -21,19 +27,34 @@ public class AccountController : ControllerBase
     readonly IAuthAppService _authAppService;
     readonly IUserAppService _userAppService;
     readonly IMapper _mapper;
-    
-       public AccountController(
+    readonly IMinioClient _minioClient;
+    readonly string bucketName = "avatars";
+
+    /// <summary>
+    /// Базовый конструктор контроллера пользователей
+    /// </summary>
+    /// <param name="authAppService">Апп сервис аутентификации</param>
+    /// <param name="userAppService">Апп сервис пользователей</param>
+    /// <param name="mapper">Автомаппер</param>
+    /// <param name="minioClient">Minio клиент</param>
+    public AccountController(
         IAuthAppService authAppService,
         IUserAppService userAppService,
-        IMapper mapper)
+        IMapper mapper,
+        IMinioClient minioClient)
     {
         _authAppService = authAppService;
         _userAppService = userAppService;
         _mapper = mapper;
+        _minioClient = minioClient;
     }
 
-   
+    /// <summary>
+    /// Возвращает пользователя по его Id
+    /// </summary>
+    /// <returns>Пользователь</returns>
     [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -41,9 +62,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetUserByIdAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         UserDto? user = _mapper.Map<UserDto>(await _userAppService.GetUserByIdAsync(Guid.Parse(id)));
 
@@ -55,18 +73,19 @@ public class AccountController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
-    
-    [Authorize]
+
+    /// <summary>
+    /// Удаляет пользователя
+    /// </summary>
+    /// <returns></returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpDelete("delete-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAccountAsync()
     {
-        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
+         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
@@ -78,8 +97,13 @@ public class AccountController : ControllerBase
         return Ok("Пользователь успешно удален");
     }
 
-    
-    [Authorize]
+
+    /// <summary>
+    /// Обновляет пользователя
+    /// </summary>
+    /// <param name="userDto">Пользователь</param>
+    /// <returns></returns>
+    [Authorize(Roles = "Admin")]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -88,9 +112,6 @@ public class AccountController : ControllerBase
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
-
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
@@ -98,12 +119,16 @@ public class AccountController : ControllerBase
 
         await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
 
-        return Ok("Пользователь успешно изменен");
+            return Ok("Пользователь успешно изменен");
     }
 
-    
+
+    /// <summary>
     /// Добавляет ивент пользователю по айди
-    [Authorize]
+    /// </summary>
+    /// <param name="eventId">Айди ивента</param>
+    /// <returns></returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("add-event-to-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -111,9 +136,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> AddEventToUserAsync([FromBody] Guid eventId)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         bool isSucсess = await _userAppService.AddEventToUserAsync(Guid.Parse(id), eventId);
 
@@ -124,8 +146,12 @@ public class AccountController : ControllerBase
     }
 
 
+    /// <summary>
     /// Удаляет ивент у пользователя по айди
-    [Authorize]
+    /// </summary>
+    /// <param name="eventId">Айди ивента</param>
+    /// <returns></returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("remove-event-from-user")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -133,9 +159,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> RemoveEventFromUser([FromBody] Guid eventId)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         bool isSucess = await _userAppService.RemoveEventFromUserAsync(Guid.Parse(id), eventId);
 
@@ -145,8 +168,11 @@ public class AccountController : ControllerBase
         return BadRequest("Не удалось удалить ивент у пользователя");
     }
 
+    /// <summary>
     /// Получает ивенты пользователя
-    [Authorize]
+    /// </summary>
+    /// <returns>Список ивентов</returns>
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-user-events")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -154,9 +180,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetUserEventsAsync()
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (id is null)
-            return Unauthorized("Пользователь не авторизован");
 
         List<Event> events = await _userAppService.GetUserEventsAsync(Guid.Parse(id));
 
@@ -166,8 +189,12 @@ public class AccountController : ControllerBase
         return Ok(_mapper.Map<List<EventDto>>(events));
     }
 
-   
+
+    /// <summary>
     /// Регистрация пользователя
+    /// </summary>
+    /// <param name="user">Пользователь</param>
+    /// <returns></returns>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -236,7 +263,7 @@ public class AccountController : ControllerBase
     /// Выход из аккаунта
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("sign-out")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -246,6 +273,206 @@ public class AccountController : ControllerBase
 
         return Ok("Вы успешно вышли из аккаунта");
     }
+    
+    /// <summary>
+    /// Удаление пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя для удаления</param>
+    /// <returns></returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpDelete("delete-user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUserAsync(Guid userId)
+    {
+        User? user = await _userAppService.GetUserByIdAsync(userId);
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        await _userAppService.DeleteUserAsync(user);
+
+        return Ok("Пользователь успешно удален");
+    }
+
+    /// <summary>
+    /// Обновление данных пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <param name="userDto">Новые данные</param>
+    /// <returns></returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpPut("update-user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateUserAsync(Guid userId, [FromBody] UserDto userDto)
+    {
+        // Проверяем, что пользователь существует
+        User? existingUser = await _userAppService.GetUserByIdAsync(userId);
+        if (existingUser is null)
+            return NotFound("Пользователь не найден");
+
+        // Обновляем только разрешенные поля
+        // (не меняем пароль и ID)
+        existingUser.Username = userDto.Username;
+        existingUser.Email = userDto.Email;
+
+        await _userAppService.UpdateUserAsync(existingUser);
+
+        return Ok("Данные пользователя успешно обновлены");
+    }
+
+    /// <summary>
+    /// Изменение аватарки пользователя
+    /// </summary>
+    /// <param name="file">Файл аватарки</param>
+    /// <returns></returns>
+    [Authorize]
+    [HttpPut("change-avatar")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangeAvatarAsync(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Файл не передан");
+
+        if (file.Length > 5 * 1024 * 1024) // 5 MB
+            return BadRequest("Слишком большой файл, не больше 5 МБ");
+
+        string extension = Path.GetExtension(file.FileName);
+        if (!new[] { ".jpg", ".jpeg", ".png" }.Contains(extension))
+            return BadRequest("Расширение должно быть jpg, jpeg или png");
+
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        try
+        {
+            using Stream stream = file.OpenReadStream();
+            await _minioClient.PutObjectAsync(new PutObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(id)
+                .WithStreamData(stream)
+                .WithObjectSize(file.Length)
+                .WithContentType(file.ContentType));
+
+            await _userAppService.UpdateUserAsync(user);
+
+            return Ok("Аватарка успешно добавлена");
+        }
+        catch (Exception)
+        {
+            return BadRequest("Minio не запущен");
+        }
+        
+    }
+
+    /// <summary>
+    /// Получение аватара
+    /// </summary>
+    /// <returns>Файл аватара</returns>
+    [Authorize]
+    [HttpGet("get-avatar")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAvatarAsync()
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        try
+        {
+            ObjectStat stat = await _minioClient.StatObjectAsync(
+            new StatObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(id));
+
+            var memoryStream = new MemoryStream();
+            await _minioClient.GetObjectAsync(new GetObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(id)
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(memoryStream);
+                }));
+
+            memoryStream.Position = 0;
+
+            Console.WriteLine(stat.ContentType);
+
+            return File(memoryStream, stat.ContentType, stat.ContentType.Split("/")[1]);
+        } 
+        catch
+        {
+            return NotFound("У вас нет аватара или Minio не запущен");
+        }
+    }
+
+    /// <summary>
+    /// Удаляет аватар
+    /// </summary>
+    /// <returns></returns>
+    [Authorize]
+    [HttpDelete("delete-avatar")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteAvatarAsync()
+    {
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        try
+        {
+            ObjectStat stat = await _minioClient.StatObjectAsync(
+            new StatObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(id));
+    
+            await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(id));
+
+            return Ok("Аватар успешно удален");
+        }
+        catch
+        {
+            return NotFound("У вас нет аватара или Minio не запущен");
+        }
+    }
+
+    // оставил для тестирования
+
+    ///// <summary>
+    ///// Удаляет бакет по названию
+    ///// </summary>
+    ///// <param name="bucketName">Название бакета</param>
+    ///// <returns></returns>
+    //[Authorize]
+    //[HttpDelete("delete-bucket")]
+    //public async Task<IActionResult> DeleteBucketAsync(string bucketName)
+    //{
+    //    bool isExists = await _minioClient.BucketExistsAsync(
+    //            new BucketExistsArgs().WithBucket(bucketName));
+
+    //    if (!isExists)
+    //        return NotFound("Бакет не найден");
+
+    //    await _minioClient.RemoveBucketAsync(
+    //        new RemoveBucketArgs().WithBucket(bucketName));
+
+    //    return Ok("Бакет удален");
+    //}
 }
 
 /// <summary>

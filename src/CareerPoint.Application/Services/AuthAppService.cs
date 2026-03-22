@@ -32,7 +32,6 @@ public class AuthAppService : IAuthAppService
                 return user;
             }
         }
-
         return null;
     }
 }
