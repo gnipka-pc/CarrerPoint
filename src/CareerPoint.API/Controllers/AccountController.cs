@@ -402,7 +402,7 @@ public class AccountController : ControllerBase
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(id)
-                .WithCallbackStream(stream => stream.CopyTo(memoryStream)));
+.WithCallbackStream(async stream => await stream.CopyToAsync(memoryStream)));
 
             memoryStream.Position = 0;
 
@@ -478,3 +478,4 @@ public class AccountController : ControllerBase
 /// <param name="Email">Почта</param>
 /// <param name="Password">Пароль</param>
 public record SignInRequest(string Email, string Password);
+
