@@ -4,15 +4,8 @@
 
 namespace CareerPoint.Infrastructure.Migrations
 {
-<<<<<<< Updated upstream
     public partial class AddUserFields : Migration
     {
-=======
-    /// <inheritdoc />
-    public partial class AddUserFields : Migration
-    {
-        /// <inheritdoc />
->>>>>>> Stashed changes
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
@@ -44,10 +37,6 @@ namespace CareerPoint.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 
-<<<<<<< Updated upstream
-=======
-        /// <inheritdoc />
->>>>>>> Stashed changes
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

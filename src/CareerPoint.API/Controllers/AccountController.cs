@@ -85,7 +85,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAccountAsync()
     {
-         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
@@ -119,7 +119,7 @@ public class AccountController : ControllerBase
 
         await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
 
-            return Ok("Пользователь успешно изменен");
+        return Ok("Пользователь успешно изменен");
     }
 
 
@@ -398,14 +398,11 @@ public class AccountController : ControllerBase
                 .WithBucket(bucketName)
                 .WithObject(id));
 
-            var memoryStream = new MemoryStream();
+            MemoryStream memoryStream = new();
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(id)
-                .WithCallbackStream(stream =>
-                {
-                    stream.CopyTo(memoryStream);
-                }));
+                .WithCallbackStream(stream => stream.CopyTo(memoryStream)));
 
             memoryStream.Position = 0;
 
@@ -438,7 +435,7 @@ public class AccountController : ControllerBase
             new StatObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(id));
-    
+
             await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
             .WithBucket(bucketName)
             .WithObject(id));

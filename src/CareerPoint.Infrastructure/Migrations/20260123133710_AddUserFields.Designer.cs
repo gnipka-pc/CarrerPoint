@@ -15,10 +15,6 @@ namespace CareerPoint.Infrastructure.Migrations
     [Migration("20260123133710_AddUserFields")]
     partial class AddUserFields
     {
-<<<<<<< Updated upstream
-=======
-        /// <inheritdoc />
->>>>>>> Stashed changes
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

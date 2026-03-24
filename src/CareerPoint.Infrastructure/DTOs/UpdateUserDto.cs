@@ -16,11 +16,6 @@ public class UpdateUserDto
 
     public string Description { get; set; } = "Empty description";
 
-    // public required string TelegramLink { get; set; }
-    //
-    // public required string PortfolioLink { get; set; }
-        
-
     public required string TelegramLink { get; set; }
 
     public required string PortfolioLink { get; set; }
@@ -37,12 +32,5 @@ public class UpdateUserDto
     public Course Course { get; set; }
 
     // Навыки
-    public string[] Skills { get; set; } = Array.Empty<string>();           
-    public string Direction { get; set; } = string.Empty;
-
-    // Курс
-    public int Course { get; set; }
-
-    // Навыки
-    public string Skills { get; set; } = string.Empty;
+    public string[] Skills { get; set; } = Array.Empty<string>();
 }

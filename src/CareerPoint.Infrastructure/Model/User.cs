@@ -31,7 +31,6 @@ public class User
     public int Age { get; set; }
 
     // Направление обучения
-<<<<<<< Updated upstream
     public Direction Direction { get; set; }
 
     // Курс (1-4)
@@ -39,15 +38,6 @@ public class User
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
-=======
-    public string Direction { get; set; } = string.Empty;
-
-    // Курс (1-6)
-    public int Course { get; set; }
-
-    // Навыки через запятую
-    public string Skills { get; set; } = string.Empty;
->>>>>>> Stashed changes
 
     public UserRole UserRole { get; set; }
 

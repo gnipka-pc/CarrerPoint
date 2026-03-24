@@ -123,13 +123,13 @@ public class EventController : ControllerBase
     }
 
 
-        /// <summary>
-        /// Получение событий пользователя по ID (для менеджера)
-        /// </summary>
-        /// <param name="userId">ID пользователя</param>
-        /// <param name="userAppService">Сервис пользователей</param>
-        /// <param name="mapper">Маппер</param>
-        /// <returns>Список событий пользователя</returns>
+    /// <summary>
+    /// Получение событий пользователя по ID (для менеджера)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <param name="userAppService">Сервис пользователей</param>
+    /// <param name="mapper">Маппер</param>
+    /// <returns>Список событий пользователя</returns>
     [Authorize(Roles = "Manager,Admin")]
     [HttpGet("get-user-events/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
