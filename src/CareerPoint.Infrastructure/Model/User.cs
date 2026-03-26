@@ -43,5 +43,5 @@ public class User
 
     public List<Event> Events { get; set; } = new();
 
-    public string? AvatarUrl { get; set; }
+    public List<EventFavorite> EventFavorites { get; set; } = new();
 }
