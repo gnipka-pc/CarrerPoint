@@ -4,11 +4,9 @@ using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.EntityFrameworkCore;
 using CareerPoint.Infrastructure.Interfaces;
 using CareerPoint.Infrastructure.Model;
-using CareerPoint.Web.HostedServices;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Minio;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -23,7 +21,6 @@ public class Program
 
         // Add services to the container.
 
-        //builder.Services.AddProblemDetails();
         builder.Services.AddControllers().AddJsonOptions(options => 
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -34,27 +31,13 @@ public class Program
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
 
-        builder.Services.AddDbContext<CareerPointContext>(options =>
-        {
-            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Conenction string is empty");
-
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-        });
-
-        builder.Services.AddMinio(options =>
-        {
-            var section = builder.Configuration.GetSection("Minio");
-            options
-                .WithEndpoint(section["Endpoint"])
-                .WithCredentials(section["AccessKey"], section["SecretKey"])
-                .WithSSL(bool.Parse(section["UseSsl"]!))
-                .Build();
-        });
+        builder.Services.AddDbContext<CareerPointContext>();
 
         builder.Services.AddTransient<IEventAppService, EventAppService>();
         builder.Services.AddTransient<IUserAppService, UserAppService>();
         builder.Services.AddTransient<IAuthAppService, AuthAppService>();
         builder.Services.AddTransient<INotificationAppService, NotificationAppService>();
+        builder.Services.AddTransient<IFavoriteAppService, FavoriteAppService>();
         builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 
         builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CareerPointProfile>());
@@ -69,13 +52,8 @@ public class Program
             });
         builder.Services.AddAuthorization();
 
-        builder.Services.AddHostedService(f =>
-        {
-            string BucketName = builder.Configuration.GetSection("Minio")["BucketName"]!;
-            return new MinioBucketInitializerHostedService(f.GetRequiredService<IMinioClient>(), BucketName, f.GetRequiredService<ILogger<MinioBucketInitializerHostedService>>());
-        });
-
         var app = builder.Build();
+
 
         using (var scope = app.Services.CreateScope())
         {
@@ -90,6 +68,7 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+
 
         app.MapControllers();
 
