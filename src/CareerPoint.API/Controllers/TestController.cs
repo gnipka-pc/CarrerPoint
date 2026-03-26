@@ -18,4 +18,10 @@ public class TestController: ControllerBase
     {
         return Ok();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTests()
+    {
+        return Ok();
+    }
 }
