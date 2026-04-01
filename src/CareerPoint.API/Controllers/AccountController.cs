@@ -303,7 +303,7 @@ public class AccountController : ControllerBase
     /// <param name="userId">ID пользователя</param>
     /// <param name="userDto">Новые данные</param>
     /// <returns></returns>
-    [Authorize(Roles = "DefaultUser,Manager,Admin")]
+    [Authorize(Roles = "Manager,Admin")]
     [HttpPut("update-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
