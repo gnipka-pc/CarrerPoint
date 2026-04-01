@@ -279,7 +279,7 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="userId">ID пользователя для удаления</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpDelete("delete-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -303,7 +303,7 @@ public class AccountController : ControllerBase
     /// <param name="userId">ID пользователя</param>
     /// <param name="userDto">Новые данные</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("update-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
