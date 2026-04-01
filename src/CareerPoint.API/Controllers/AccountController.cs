@@ -99,27 +99,62 @@ public class AccountController : ControllerBase
 
 
     /// <summary>
-    /// Обновляет пользователя
+    /// Обновляет данные текущего авторизованного пользователя
     /// </summary>
-    /// <param name="userDto">Пользователь</param>
+    /// <param name="userDto">Новые данные пользователя</param>
     /// <returns></returns>
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto userDto)
     {
-        string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
+        if (string.IsNullOrEmpty(currentUserIdStr))
+            return Unauthorized();
+
+        Guid currentUserId = Guid.Parse(currentUserIdStr);
+
+        User? user = await _userAppService.GetUserByIdAsync(currentUserId);
 
         if (user is null)
             return NotFound("Пользователь не найден");
 
-        await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
+        // Если обычный пользователь пытается изменить роль (значение в JSON отличается от базы),
+        // и он не Менеджер/Админ — выдаем ошибку.
+        if (!User.IsInRole("Manager") && !User.IsInRole("Admin"))
+        {
+            if (user.UserRole != userDto.UserRole)
+            {
+                return BadRequest("У вас нет прав для изменения роли. Укажите вашу текущую роль (DefaultUser = 2) в запросе.");
+            }
+        }
 
-        return Ok("Пользователь успешно изменен");
+        // Обновляем поля профиля
+        user.Username = userDto.Username;
+        user.Email = userDto.Email;
+        user.Name = userDto.Name;
+        user.Surname = userDto.Surname;
+        user.Patronymic = userDto.Patronymic;
+        user.Description = userDto.Description;
+        user.TelegramLink = userDto.TelegramLink;
+        user.PortfolioLink = userDto.PortfolioLink;
+        user.Age = userDto.Age;
+        user.Direction = userDto.Direction;
+        user.Course = userDto.Course;
+        user.Skills = userDto.Skills;
+
+        // Роль меняем только если есть права
+        if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+        {
+            user.UserRole = userDto.UserRole;
+        }
+
+        await _userAppService.UpdateUserAsync(user);
+
+        return Ok("Профиль успешно обновлен");
     }
 
 
@@ -298,12 +333,12 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление данных пользователя по ID (для менеджера)
+    /// Обновляет пользователя
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="userDto">Новые данные</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpPut("update-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -312,15 +347,54 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateUserAsync(Guid userId, [FromBody] UserDto userDto)
     {
+        string? currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(currentUserIdStr))
+            return Unauthorized();
+
+        Guid currentUserId = Guid.Parse(currentUserIdStr);
+
+        // Пользователь может обновлять только свой профиль, 
+        // либо это должен делать Менеджер/Админ
+        if (currentUserId != userId && !User.IsInRole("Manager") && !User.IsInRole("Admin"))
+        {
+            return Forbid();
+        }
+
         // Проверяем, что пользователь существует
         User? existingUser = await _userAppService.GetUserByIdAsync(userId);
         if (existingUser is null)
             return NotFound("Пользователь не найден");
 
-        // Обновляем только разрешенные поля
-        // (не меняем пароль и ID)
+        // Если обычный пользователь пытается изменить роль (значение в JSON отличается от базы),
+        // и он не Менеджер/Админ — выдаем ошибку.
+        if (!User.IsInRole("Manager") && !User.IsInRole("Admin"))
+        { 
+            if (existingUser.UserRole != userDto.UserRole)
+            {
+                return BadRequest("У вас нет прав для изменения роли. Укажите текущую роль пользователя в запросе.");
+            }
+        }
+
+        // Обновляем поля профиля
         existingUser.Username = userDto.Username;
         existingUser.Email = userDto.Email;
+        existingUser.Name = userDto.Name;
+        existingUser.Surname = userDto.Surname;
+        existingUser.Patronymic = userDto.Patronymic;
+        existingUser.Description = userDto.Description;
+        existingUser.TelegramLink = userDto.TelegramLink;
+        existingUser.PortfolioLink = userDto.PortfolioLink;
+        existingUser.Age = userDto.Age;
+        existingUser.Direction = userDto.Direction;
+        existingUser.Course = userDto.Course;
+        existingUser.Skills = userDto.Skills;
+
+        // Роль меняем только если есть права
+        if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+        { 
+            existingUser.UserRole = userDto.UserRole;
+        }
 
         await _userAppService.UpdateUserAsync(existingUser);
 
