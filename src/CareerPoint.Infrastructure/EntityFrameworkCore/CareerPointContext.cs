@@ -56,6 +56,9 @@ public class CareerPointContext : DbContext
                 .WithOne(s => s.Form)
                 .HasForeignKey(s => s.FormId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.Property(f => f.IsOpen).HasDefaultValue(true);
+            b.Property(f => f.DeadlineAt).IsRequired(false);
         });
 
         modelBuilder.Entity<FormField>(b =>
@@ -74,6 +77,9 @@ public class CareerPointContext : DbContext
         modelBuilder.Entity<QuestionOption>(b =>
         {
             b.HasKey(o => o.Id);
+
+            // Value необязателен; если не указан — при сравнении ответов используется Text
+            b.Property(o => o.Value).IsRequired(false);
         });
 
         modelBuilder.Entity<FormSubmission>(b =>

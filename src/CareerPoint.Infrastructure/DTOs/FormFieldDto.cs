@@ -1,4 +1,4 @@
-﻿using CareerPoint.Infrastructure.Enums;
+using CareerPoint.Infrastructure.Enums;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
@@ -7,7 +7,7 @@ public class FormFieldDto
     /// <summary>Текст вопроса</summary>
     public required string Text { get; set; }
 
-    /// <summary>Дополнительное объяснение к вопросу</summary>
+    /// <summary>Дополнительное объяснение / подсказка к вопросу</summary>
     public string? Description { get; set; }
 
     public FieldType Type { get; set; }
@@ -17,5 +17,5 @@ public class FormFieldDto
     public int Order { get; set; }
 
     /// <summary>Варианты для Select / Radio / Checkbox</summary>
-    public List<string>? Options { get; set; }
+    public List<QuestionOptionDto>? Options { get; set; }
 }

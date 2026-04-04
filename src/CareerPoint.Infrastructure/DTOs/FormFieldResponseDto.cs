@@ -1,4 +1,4 @@
-﻿using CareerPoint.Infrastructure.Enums;
+using CareerPoint.Infrastructure.Enums;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
@@ -9,7 +9,7 @@ public class FormFieldResponseDto
     /// <summary>Текст вопроса</summary>
     public required string Text { get; set; }
 
-    /// <summary>Дополнительное объяснение к вопросу</summary>
+    /// <summary>Дополнительное объяснение / подсказка к вопросу</summary>
     public string? Description { get; set; }
 
     public FieldType Type { get; set; }
@@ -18,5 +18,5 @@ public class FormFieldResponseDto
 
     public int Order { get; set; }
 
-    public List<string> Options { get; set; } = new();
+    public List<QuestionOptionDto> Options { get; set; } = new();
 }

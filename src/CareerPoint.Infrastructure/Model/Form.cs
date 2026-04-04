@@ -14,7 +14,11 @@ public class Form
 
     public string? Description { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    /// <summary>Открыта ли форма для приёма ответов студентов</summary>
+    public bool IsOpen { get; set; } = true;
+
+    /// <summary>Дедлайн приёма заявок (опционально)</summary>
+    public DateTime? DeadlineAt { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

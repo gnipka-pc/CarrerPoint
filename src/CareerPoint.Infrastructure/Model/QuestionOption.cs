@@ -1,4 +1,4 @@
-﻿namespace CareerPoint.Infrastructure.Model;
+namespace CareerPoint.Infrastructure.Model;
 
 /// <summary>
 /// Вариант ответа для поля формы (Select / Radio / Checkbox)
@@ -11,8 +11,11 @@ public class QuestionOption
 
     public FormField? Question { get; set; }
 
+    /// <summary>Отображаемый текст варианта</summary>
     public required string Text { get; set; }
+
+    /// <summary>Внутренний ключ варианта (используется при сохранении ответа)</summary>
+    public string? Value { get; set; }
 
     public int OrderIndex { get; set; }
 }
-

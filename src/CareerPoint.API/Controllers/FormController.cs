@@ -15,22 +15,18 @@ public class FormController : ControllerBase
 {
     private readonly IFormAppService _formAppService;
 
-    /// <summary>
-    /// Базовый конструктор контроллера форм
-    /// </summary>
     public FormController(IFormAppService formAppService)
     {
         _formAppService = formAppService;
     }
 
+    // ── МЕНЕДЖЕР ─────────────────────────────────────────────────
 
     /// <summary>
     /// Создание формы регистрации для мероприятия
     /// </summary>
-    /// <param name="dto">Данные формы</param>
-    /// <returns>Созданная форма</returns>
     [Authorize(Roles = "Manager,Admin")]
-    [HttpPost("create")]
+    [HttpPost]
     [ProducesResponseType(typeof(FormResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -52,11 +48,8 @@ public class FormController : ControllerBase
     /// <summary>
     /// Обновление формы регистрации
     /// </summary>
-    /// <param name="formId">ID формы</param>
-    /// <param name="dto">Новые данные формы</param>
-    /// <returns>Обновлённая форма</returns>
     [Authorize(Roles = "Manager,Admin")]
-    [HttpPut("update/{formId}")]
+    [HttpPut("{formId:guid}")]
     [ProducesResponseType(typeof(FormResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -77,10 +70,9 @@ public class FormController : ControllerBase
     /// <summary>
     /// Удаление формы регистрации
     /// </summary>
-    /// <param name="formId">ID формы</param>
     [Authorize(Roles = "Manager,Admin")]
-    [HttpDelete("delete/{formId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [HttpDelete("{formId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -89,7 +81,7 @@ public class FormController : ControllerBase
         try
         {
             await _formAppService.DeleteFormAsync(formId);
-            return Ok("Форма удалена успешно.");
+            return NoContent();
         }
         catch (KeyNotFoundException ex)
         {
@@ -100,10 +92,8 @@ public class FormController : ControllerBase
     /// <summary>
     /// Получение формы по ID мероприятия (менеджер)
     /// </summary>
-    /// <param name="eventId">ID мероприятия</param>
-    /// <returns>Форма регистрации</returns>
     [Authorize(Roles = "Manager,Admin")]
-    [HttpGet("by-event/{eventId}")]
+    [HttpGet("by-event/{eventId:guid}")]
     [ProducesResponseType(typeof(FormResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -121,10 +111,8 @@ public class FormController : ControllerBase
     /// <summary>
     /// Получение результатов прохождения формы (все ответы студентов)
     /// </summary>
-    /// <param name="formId">ID формы</param>
-    /// <returns>Результаты с ответами всех студентов</returns>
     [Authorize(Roles = "Manager,Admin")]
-    [HttpGet("{formId}/results")]
+    [HttpGet("{formId:guid}/results")]
     [ProducesResponseType(typeof(FormResultsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -142,17 +130,16 @@ public class FormController : ControllerBase
         }
     }
 
-    //СТУДЕНТ
+    // ── СТУДЕНТ ──────────────────────────────────────────────────
 
     /// <summary>
     /// Получение формы регистрации по ID мероприятия (студент)
     /// </summary>
-    /// <param name="eventId">ID мероприятия</param>
-    /// <returns>Форма с полями для заполнения</returns>
     [Authorize(Roles = "DefaultUser")]
-    [HttpGet("event/{eventId}")]
+    [HttpGet("event/{eventId:guid}")]
     [ProducesResponseType(typeof(FormResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetFormByEventIdForStudentAsync(Guid eventId)
     {
@@ -161,8 +148,8 @@ public class FormController : ControllerBase
         if (form is null)
             return NotFound($"Форма для мероприятия {eventId} не найдена.");
 
-        if (!form.IsActive)
-            return BadRequest("Форма неактивна.");
+        if (!form.IsOpen)
+            return BadRequest("Форма закрыта.");
 
         return Ok(form);
     }
@@ -170,11 +157,8 @@ public class FormController : ControllerBase
     /// <summary>
     /// Прохождение формы регистрации студентом
     /// </summary>
-    /// <param name="eventId">ID мероприятия</param>
-    /// <param name="dto">Ответы на поля формы</param>
-    /// <returns>Сохранённые ответы</returns>
     [Authorize(Roles = "DefaultUser")]
-    [HttpPost("event/{eventId}/submit")]
+    [HttpPost("event/{eventId:guid}/submit")]
     [ProducesResponseType(typeof(FormSubmissionResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -206,10 +190,8 @@ public class FormController : ControllerBase
     /// <summary>
     /// Получение данных формы, которую студент заполнял, по ID мероприятия
     /// </summary>
-    /// <param name="eventId">ID мероприятия</param>
-    /// <returns>Форма с ответами студента</returns>
     [Authorize(Roles = "DefaultUser")]
-    [HttpGet("event/{eventId}/my-submission")]
+    [HttpGet("event/{eventId:guid}/my-submission")]
     [ProducesResponseType(typeof(FormWithMyAnswersDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -228,7 +210,7 @@ public class FormController : ControllerBase
         return Ok(result);
     }
 
-    //Вспомогательные методы
+    // ── ВСПОМОГАТЕЛЬНЫЕ ─────────────────────────────────────────
 
     private Guid? GetCurrentUserId()
     {

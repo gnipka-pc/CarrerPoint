@@ -32,7 +32,8 @@ public class FormAppService : IFormAppService
             EventId = dto.EventId,
             Title = dto.Title,
             Description = dto.Description,
-            IsActive = true,
+            IsOpen = true,
+            DeadlineAt = dto.DeadlineAt,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -52,7 +53,8 @@ public class FormAppService : IFormAppService
 
         form.Title = dto.Title;
         form.Description = dto.Description;
-        form.IsActive = dto.IsActive;
+        form.IsOpen = dto.IsOpen;
+        form.DeadlineAt = dto.DeadlineAt;
         form.UpdatedAt = DateTime.UtcNow;
 
         // Удаляем старые поля и заменяем новыми
@@ -126,8 +128,11 @@ public class FormAppService : IFormAppService
             .FirstOrDefaultAsync(f => f.EventId == eventId)
             ?? throw new KeyNotFoundException($"Форма для мероприятия {eventId} не найдена.");
 
-        if (!form.IsActive)
-            throw new InvalidOperationException("Форма неактивна и не принимает ответы.");
+        if (!form.IsOpen)
+            throw new InvalidOperationException("Форма закрыта и не принимает ответы.");
+
+        if (form.DeadlineAt.HasValue && DateTime.UtcNow > form.DeadlineAt.Value)
+            throw new InvalidOperationException("Срок подачи заявки истёк.");
 
         bool alreadySubmitted = await _context.FormSubmissions
             .AnyAsync(s => s.FormId == form.Id && s.StudentId == studentId);
@@ -253,11 +258,12 @@ public class FormAppService : IFormAppService
                 IsRequired = dto.IsRequired,
                 Order = dto.Order,
                 Options = dto.Options is { Count: > 0 }
-                    ? dto.Options.Select((text, index) => new QuestionOption
+                    ? dto.Options.Select((opt, index) => new QuestionOption
                     {
                         Id = Guid.NewGuid(),
                         QuestionId = fieldId,
-                        Text = text,
+                        Text = opt.Text,
+                        Value = opt.Value,
                         OrderIndex = index
                     }).ToList()
                     : new List<QuestionOption>()
@@ -273,7 +279,8 @@ public class FormAppService : IFormAppService
             EventId = form.EventId,
             Title = form.Title,
             Description = form.Description,
-            IsActive = form.IsActive,
+            IsOpen = form.IsOpen,
+            DeadlineAt = form.DeadlineAt,
             CreatedAt = form.CreatedAt,
             UpdatedAt = form.UpdatedAt,
             Fields = form.Fields
@@ -288,7 +295,11 @@ public class FormAppService : IFormAppService
                     Order = f.Order,
                     Options = f.Options
                         .OrderBy(o => o.OrderIndex)
-                        .Select(o => o.Text)
+                        .Select(o => new QuestionOptionDto
+                        {
+                            Text = o.Text,
+                            Value = o.Value
+                        })
                         .ToList()
                 })
                 .ToList()
