@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Minio;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Serilog;
 
 namespace CareerPoint.API;
 
@@ -20,13 +21,13 @@ public class Program
     {
 
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddSerilog(c => c.WriteTo.Console());
 
         // Add services to the container.
-
-        //builder.Services.AddProblemDetails();
+        
         builder.Services.AddControllers().AddJsonOptions(options => 
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
@@ -83,6 +84,7 @@ public class Program
             dbContext.Database.Migrate();
         }
 
+        app.UseSerilogRequestLogging();
         app.UseSwagger();
         app.UseSwaggerUI();
 
