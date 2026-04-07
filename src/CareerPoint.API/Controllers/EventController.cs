@@ -59,23 +59,17 @@ public class EventController : ControllerBase
     /// <summary>
     /// Создание ивента
     /// </summary>
-    /// <param name="ev">Ивент</param>
+    /// <param name="createDto">Данные для создания ивента</param>
     /// <returns></returns>
     [Authorize(Roles = "Manager")]
     [HttpPost("create-event")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CreateEventAsync([FromBody] EventDto ev)
+    public async Task<IActionResult> CreateEventAsync([FromBody] CreateEventDto createDto)
     {
-        if (await _eventAppService.GetEventByIdAsync(ev.Id) == null)
-        {
-            await _eventAppService.CreateEventAsync(ev);
-
-            return Ok(ev);
-        }
-
-        return BadRequest("Ивент с данным Id уже существует");
+        await _eventAppService.CreateEventAsync(createDto);
+        return Ok("Ивент создан успешно");
     }
 
     /// <summary>
@@ -91,10 +85,10 @@ public class EventController : ControllerBase
     public async Task<IActionResult> DeleteEventAsync(Guid id)
     {
         EventDto? ev = await _eventAppService.GetEventByIdAsync(id);
-        
+
         if (ev != null)
         {
-            await _eventAppService.DeleteEventAsync(ev);
+            await _eventAppService.DeleteEventAsync(id);
             return Ok("Ивент удален успешно");
         }
 
@@ -102,23 +96,24 @@ public class EventController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление ивента 
+    /// Обновление ивента
     /// </summary>
-    /// <param name="newEvent">Ивент</param>
+    /// <param name="id">ID ивента</param>
+    /// <param name="eventDto">Данные ивента</param>
     /// <returns></returns>
     [Authorize(Roles = "Manager")]
-    [HttpPut("update-event")]
+    [HttpPut("update-event/{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UpdateEventAsync([FromBody] EventDto newEvent)
+    public async Task<IActionResult> UpdateEventAsync(Guid id, [FromBody] EventDto eventDto)
     {
-        if (await _eventAppService.GetEventByIdAsync(newEvent.Id) != null)
+        if (await _eventAppService.GetEventByIdAsync(id) != null)
         {
-            await _eventAppService.UpdateEventAsync(newEvent);
+            await _eventAppService.UpdateEventAsync(id, eventDto);
             return Ok("Ивент изменен успешно");
         }
-            
+
         return NotFound("Ивент с данным id не был найден");
     }
 

@@ -12,5 +12,11 @@ public class Event
 
     public EventType EventType { get; set; }
 
+    public DateTime StartDate { get; set; }
+
+    public DateTime? EndDate { get; set; }
+
     public List<User> Users { get; set; } = new();
+
+    public List<EventTag> Tags { get; set; } = new();
 }
