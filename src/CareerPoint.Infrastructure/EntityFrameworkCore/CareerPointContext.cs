@@ -27,6 +27,12 @@ public class CareerPointContext : DbContext
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
 
+        modelBuilder.Entity<Event>()
+            .Property(e => e.HardSkills)
+            .HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+
         modelBuilder.Entity<EventFavorite>()
             .HasKey(x => new { x.UserId, x.EventId });
 

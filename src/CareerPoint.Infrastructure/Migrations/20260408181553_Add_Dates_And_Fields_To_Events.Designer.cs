@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    partial class CareerPointContextModelSnapshot : ModelSnapshot
+    [Migration("20260408181553_Add_Dates_And_Fields_To_Events")]
+    partial class Add_Dates_And_Fields_To_Events
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,26 +61,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
-                });
-
-            modelBuilder.Entity("CareerPoint.Infrastructure.Model.EventFavorite", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP()");
-
-                    b.HasKey("UserId", "EventId");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("EventFavorites");
                 });
 
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.User", b =>
@@ -163,25 +146,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.ToTable("EventUser");
                 });
 
-            modelBuilder.Entity("CareerPoint.Infrastructure.Model.EventFavorite", b =>
-                {
-                    b.HasOne("CareerPoint.Infrastructure.Model.Event", "Event")
-                        .WithMany("EventFavorites")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CareerPoint.Infrastructure.Model.User", "User")
-                        .WithMany("EventFavorites")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("EventUser", b =>
                 {
                     b.HasOne("CareerPoint.Infrastructure.Model.Event", null)
@@ -195,16 +159,6 @@ namespace CareerPoint.Infrastructure.Migrations
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CareerPoint.Infrastructure.Model.Event", b =>
-                {
-                    b.Navigation("EventFavorites");
-                });
-
-            modelBuilder.Entity("CareerPoint.Infrastructure.Model.User", b =>
-                {
-                    b.Navigation("EventFavorites");
                 });
 #pragma warning restore 612, 618
         }
