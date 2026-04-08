@@ -13,4 +13,6 @@ public class Event
     public EventType EventType { get; set; }
 
     public List<User> Users { get; set; } = new();
+
+    public List<EventFavorite> EventFavorites { get; set; } = new();
 }
