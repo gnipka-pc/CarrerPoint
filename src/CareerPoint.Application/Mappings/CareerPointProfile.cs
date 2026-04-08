@@ -8,19 +8,13 @@ public class CareerPointProfile : Profile
 {
     public CareerPointProfile()
     {
-        CreateMap<Event, EventDto>()
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
-                src.Tags.ToDictionary(t => t.Key, t => t.Value)));
+        CreateMap<Event, EventDto>();
 
-        CreateMap<EventDto, Event>()
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
-                src.Tags.Select(kvp => new EventTag { Key = kvp.Key, Value = kvp.Value }).ToList()));
+        CreateMap<EventDto, Event>();
 
         CreateMap<CreateEventDto, Event>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Users, opt => opt.Ignore())
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
-                src.Tags.Select(kvp => new EventTag { Key = kvp.Key, Value = kvp.Value }).ToList()));
+            .ForMember(dest => dest.Users, opt => opt.Ignore());
 
 
         CreateMap<User, UserDto>();

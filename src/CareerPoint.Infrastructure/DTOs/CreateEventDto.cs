@@ -14,5 +14,9 @@ public class CreateEventDto
 
     public DateTime? EndDate { get; set; }
 
-    public Dictionary<string, string> Tags { get; set; } = new();
+    public string? Organization { get; set; }
+
+    public string[] HardSkills { get; set; } = Array.Empty<string>();
+
+    public string? Position { get; set; }
 }

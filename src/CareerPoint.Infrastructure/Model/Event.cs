@@ -16,7 +16,11 @@ public class Event
 
     public DateTime? EndDate { get; set; }
 
-    public List<User> Users { get; set; } = new();
+    public string? Organization { get; set; }
 
-    public List<EventTag> Tags { get; set; } = new();
+    public string[] HardSkills { get; set; } = Array.Empty<string>();
+
+    public string? Position { get; set; }
+
+    public List<User> Users { get; set; } = new();
 }

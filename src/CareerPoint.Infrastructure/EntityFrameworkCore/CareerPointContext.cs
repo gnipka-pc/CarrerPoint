@@ -9,8 +9,6 @@ public class CareerPointContext : DbContext
 
     public DbSet<Event> Events { get; set; }
 
-    public DbSet<EventTag> EventTags { get; set; }
-
     public CareerPointContext(DbContextOptions<CareerPointContext> options) : base(options)
     {
     }
@@ -28,12 +26,9 @@ public class CareerPointContext : DbContext
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
 
         modelBuilder.Entity<Event>()
-            .HasMany(e => e.Tags)
-            .WithOne(t => t.Event)
-            .HasForeignKey(t => t.EventId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<EventTag>()
-            .HasIndex(t => new { t.EventId, t.Key });
+            .Property(e => e.HardSkills)
+            .HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
     }
 }

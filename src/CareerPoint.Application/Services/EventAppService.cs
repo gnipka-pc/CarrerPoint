@@ -44,7 +44,6 @@ public class EventAppService : IEventAppService
     public async Task<EventDto?> GetEventByIdAsync(Guid id)
     {
         Event? ev = await _events
-            .Include(e => e.Tags)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -54,7 +53,6 @@ public class EventAppService : IEventAppService
     public async Task<List<EventDto>> GetEventsAsync()
     {
         return await _events
-            .Include(e => e.Tags)
             .AsNoTracking()
             .Select(ev => _mapper.Map<EventDto>(ev))
             .ToListAsync();
@@ -62,9 +60,7 @@ public class EventAppService : IEventAppService
 
     public async Task UpdateEventAsync(Guid id, EventDto eventDto)
     {
-        var existingEvent = await _events
-            .Include(e => e.Tags)
-            .FirstOrDefaultAsync(e => e.Id == id);
+        var existingEvent = await _events.FirstOrDefaultAsync(e => e.Id == id);
 
         if (existingEvent == null)
             return;
@@ -74,17 +70,9 @@ public class EventAppService : IEventAppService
         existingEvent.EventType = eventDto.EventType;
         existingEvent.StartDate = eventDto.StartDate;
         existingEvent.EndDate = eventDto.EndDate;
-
-        // Update tags
-        existingEvent.Tags.Clear();
-        foreach (var tag in eventDto.Tags)
-        {
-            existingEvent.Tags.Add(new EventTag
-            {
-                Key = tag.Key,
-                Value = tag.Value
-            });
-        }
+        existingEvent.Organization = eventDto.Organization;
+        existingEvent.HardSkills = eventDto.HardSkills;
+        existingEvent.Position = eventDto.Position;
 
         await _context.SaveChangesAsync();
     }
