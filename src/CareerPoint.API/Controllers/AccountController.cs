@@ -405,13 +405,14 @@ public class AccountController : ControllerBase
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(id)
-                .WithCallbackStream(async stream => await stream.CopyToAsync(memoryStream)));
+                .WithCallbackStream(stream => stream.CopyTo(memoryStream)));
 
             memoryStream.Position = 0;
 
-            Console.WriteLine(stat.ContentType);
+            string contentType = stat.ContentType ?? "application/octet-stream";
+            string fileName = contentType.Contains("/") ? contentType.Split("/")[1] : "avatar";
 
-            return File(memoryStream, stat.ContentType, stat.ContentType.Split("/")[1]);
+            return File(memoryStream, contentType, fileName);
         } 
         catch
         {
