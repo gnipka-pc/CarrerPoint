@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    partial class CareerPointContextModelSnapshot : ModelSnapshot
+    [Migration("20260322110428_AddEventFavorites")]
+    partial class AddEventFavorites
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,24 +35,8 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("EventType")
                         .HasColumnType("int");
-
-                    b.Property<string>("HardSkills")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Organization")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Position")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Title")
                         .IsRequired()
