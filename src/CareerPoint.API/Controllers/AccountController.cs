@@ -103,7 +103,7 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="userDto">Пользователь</param>
     /// <returns></returns>
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, DefaultUser")]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -117,7 +117,10 @@ public class AccountController : ControllerBase
         if (user is null)
             return NotFound("Пользователь не найден");
 
-        await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
+        var updateUser = _mapper.Map<User>(userDto);
+        updateUser.HashedPassword = user.HashedPassword;
+
+        await _userAppService.UpdateUserAsync(updateUser);
 
         return Ok("Пользователь успешно изменен");
     }
@@ -279,7 +282,7 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="userId">ID пользователя для удаления</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpDelete("delete-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
