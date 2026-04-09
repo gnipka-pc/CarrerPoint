@@ -30,8 +30,8 @@ public class User
     // Возраст пользователя
     public int Age { get; set; }
 
-    // Направление обучения
-    public Direction Direction { get; set; }
+    // Направления обучения
+    public List<Direction> Directions { get; set; } = new();
 
     // Курс (1-4)
     public Course Course { get; set; }

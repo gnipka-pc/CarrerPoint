@@ -27,8 +27,8 @@ public class UserDto
     // Возраст
     public int Age { get; set; }
 
-    // Направление
-    public Direction Direction { get; set; }
+    // Направления
+    public List<Direction> Directions { get; set; } = new();
 
     // Курс
     public Course Course { get; set; }
