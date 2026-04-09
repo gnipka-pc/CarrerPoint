@@ -32,8 +32,24 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("EventType")
                         .HasColumnType("int");
+
+                    b.Property<string>("HardSkills")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Organization")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Position")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -42,6 +58,24 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("CareerPoint.Infrastructure.Model.EventFavorite", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("UserId", "EventId");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("EventFavorites");
                 });
 
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.Form", b =>
@@ -274,6 +308,25 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.ToTable("EventUser");
                 });
 
+            modelBuilder.Entity("CareerPoint.Infrastructure.Model.EventFavorite", b =>
+                {
+                    b.HasOne("CareerPoint.Infrastructure.Model.Event", "Event")
+                        .WithMany("EventFavorites")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CareerPoint.Infrastructure.Model.User", "User")
+                        .WithMany("EventFavorites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.Form", b =>
                 {
                     b.HasOne("CareerPoint.Infrastructure.Model.Event", "Event")
@@ -360,6 +413,11 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CareerPoint.Infrastructure.Model.Event", b =>
+                {
+                    b.Navigation("EventFavorites");
+                });
+
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.Form", b =>
                 {
                     b.Navigation("Fields");
@@ -375,6 +433,11 @@ namespace CareerPoint.Infrastructure.Migrations
             modelBuilder.Entity("CareerPoint.Infrastructure.Model.FormSubmission", b =>
                 {
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("CareerPoint.Infrastructure.Model.User", b =>
+                {
+                    b.Navigation("EventFavorites");
                 });
 #pragma warning restore 612, 618
         }

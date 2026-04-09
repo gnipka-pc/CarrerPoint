@@ -22,34 +22,57 @@ public class EventAppService : IEventAppService
         _mapper = mapper;
     }
 
-    public async Task CreateEventAsync(EventDto evDto)
+    public async Task CreateEventAsync(CreateEventDto createDto)
     {
-        await _events.AddAsync(_mapper.Map<Event>(evDto));
+        var ev = _mapper.Map<Event>(createDto);
+        ev.Id = Guid.NewGuid();
 
+        await _events.AddAsync(ev);
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteEventAsync(EventDto ev)
+    public async Task DeleteEventAsync(Guid id)
     {
-        _events.Remove(_mapper.Map<Event>(ev));
-        await _context.SaveChangesAsync();
+        var ev = await _events.FindAsync(id);
+        if (ev != null)
+        {
+            _events.Remove(ev);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<EventDto?> GetEventByIdAsync(Guid id)
     {
-        Event? ev = await _events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+        Event? ev = await _events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
 
         return _mapper.Map<EventDto?>(ev);
     }
 
     public async Task<List<EventDto>> GetEventsAsync()
     {
-        return await _events.AsNoTracking().Select(ev => _mapper.Map<EventDto>(ev)).ToListAsync();
+        return await _events
+            .AsNoTracking()
+            .Select(ev => _mapper.Map<EventDto>(ev))
+            .ToListAsync();
     }
 
-    public async Task UpdateEventAsync(EventDto newEventDto)
+    public async Task UpdateEventAsync(Guid id, EventDto eventDto)
     {
-        _events.Update(_mapper.Map<Event>(newEventDto));
+        var existingEvent = await _events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (existingEvent == null)
+            return;
+
+        existingEvent.Title = eventDto.Title;
+        existingEvent.Description = eventDto.Description;
+        existingEvent.EventType = eventDto.EventType;
+        existingEvent.StartDate = eventDto.StartDate;
+        existingEvent.EndDate = eventDto.EndDate;
+        existingEvent.Organization = eventDto.Organization;
+        existingEvent.HardSkills = eventDto.HardSkills;
+        existingEvent.Position = eventDto.Position;
 
         await _context.SaveChangesAsync();
     }

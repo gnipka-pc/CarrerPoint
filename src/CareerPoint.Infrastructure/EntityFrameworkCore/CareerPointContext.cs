@@ -19,6 +19,8 @@ public class CareerPointContext : DbContext
     
     public DbSet<SubmissionAnswer> SubmissionAnswers { get; set; }
 
+    public DbSet<EventFavorite> EventFavorites { get; set; }
+
     public CareerPointContext(DbContextOptions<CareerPointContext> options) : base(options)
     {
     }
@@ -34,6 +36,30 @@ public class CareerPointContext : DbContext
             .HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        
+        modelBuilder.Entity<Event>()
+            .Property(e => e.HardSkills)
+            .HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+        modelBuilder.Entity<EventFavorite>()
+            .HasKey(x => new { x.UserId, x.EventId });
+
+        modelBuilder.Entity<EventFavorite>()
+            .Property(x => x.CreatedAt);
+
+        modelBuilder.Entity<EventFavorite>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.EventFavorites)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EventFavorite>()
+            .HasOne(x => x.Event)
+            .WithMany(x => x.EventFavorites)
+            .HasForeignKey(x => x.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<Form>(b =>
         {

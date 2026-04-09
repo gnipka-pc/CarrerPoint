@@ -11,6 +11,15 @@ namespace CareerPoint.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "CreatedAt",
+                table: "EventFavorites",
+                type: "datetime(6)",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "datetime(6)",
+                oldDefaultValueSql: "CURRENT_TIMESTAMP()");
+
             migrationBuilder.CreateTable(
                 name: "Forms",
                 columns: table => new
@@ -199,6 +208,15 @@ namespace CareerPoint.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Forms");
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "CreatedAt",
+                table: "EventFavorites",
+                type: "datetime(6)",
+                nullable: false,
+                defaultValueSql: "CURRENT_TIMESTAMP()",
+                oldClrType: typeof(DateTime),
+                oldType: "datetime(6)");
         }
     }
 }

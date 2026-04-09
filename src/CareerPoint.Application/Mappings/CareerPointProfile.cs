@@ -9,9 +9,14 @@ public class CareerPointProfile : Profile
     public CareerPointProfile()
     {
         CreateMap<Event, EventDto>();
+
         CreateMap<EventDto, Event>();
 
-        
+        CreateMap<CreateEventDto, Event>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Users, opt => opt.Ignore());
+
+
         CreateMap<User, UserDto>();
         CreateMap<UserDto, User>();
 
