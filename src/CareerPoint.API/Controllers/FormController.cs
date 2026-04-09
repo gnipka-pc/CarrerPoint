@@ -19,9 +19,7 @@ public class FormController : ControllerBase
     {
         _formAppService = formAppService;
     }
-
-    // ── МЕНЕДЖЕР ─────────────────────────────────────────────────
-
+    
     /// <summary>
     /// Создание формы регистрации для мероприятия
     /// </summary>
@@ -36,8 +34,7 @@ public class FormController : ControllerBase
         try
         {
             FormResponseDto result = await _formAppService.CreateFormAsync(dto);
-            return CreatedAtAction(nameof(GetFormByEventIdForManagerAsync),
-                new { eventId = result.EventId }, result);
+            return Ok(result.Id);
         }
         catch (InvalidOperationException ex)
         {
@@ -129,9 +126,7 @@ public class FormController : ControllerBase
             return NotFound(ex.Message);
         }
     }
-
-    // ── СТУДЕНТ ──────────────────────────────────────────────────
-
+    
     /// <summary>
     /// Получение формы регистрации по ID мероприятия (студент)
     /// </summary>
@@ -209,8 +204,6 @@ public class FormController : ControllerBase
 
         return Ok(result);
     }
-
-    // ── ВСПОМОГАТЕЛЬНЫЕ ─────────────────────────────────────────
 
     private Guid? GetCurrentUserId()
     {
