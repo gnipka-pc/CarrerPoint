@@ -50,6 +50,23 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Возвращает всех пользователей
+    /// </summary>
+    /// <returns>Список всех пользователей</returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-all-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetAllUsersAsync()
+    {
+        List<User> users = await _userAppService.GetUsersAsync();
+        List<UserDto> userDtos = _mapper.Map<List<UserDto>>(users);
+
+        return Ok(userDtos);
+    }
+
+    /// <summary>
     /// Возвращает пользователя по его Id
     /// </summary>
     /// <returns>Пользователь</returns>
