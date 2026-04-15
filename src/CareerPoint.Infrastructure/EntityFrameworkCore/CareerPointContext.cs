@@ -37,7 +37,6 @@ public class CareerPointContext : DbContext
             .HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
-<<<<<<< HEAD
 
         modelBuilder.Entity<User>()
             .Property(u => u.Directions)
@@ -47,9 +46,6 @@ public class CareerPointContext : DbContext
                       .Select(s => (Direction)int.Parse(s))
                       .ToList());
 
-=======
-        
->>>>>>> origin/main
         modelBuilder.Entity<Event>()
             .Property(e => e.HardSkills)
             .HasConversion(
@@ -60,12 +56,8 @@ public class CareerPointContext : DbContext
             .HasKey(x => new { x.UserId, x.EventId });
 
         modelBuilder.Entity<EventFavorite>()
-<<<<<<< HEAD
             .Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-=======
-            .Property(x => x.CreatedAt);
->>>>>>> origin/main
 
         modelBuilder.Entity<EventFavorite>()
             .HasOne(x => x.User)

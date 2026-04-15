@@ -33,6 +33,12 @@ public class UserDto
     // Курс
     public Course Course { get; set; }
 
+    // Группа
+    public string? Group { get; set; }
+
+    // Номер телефона
+    public string? PhoneNumber { get; set; }
+
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
 

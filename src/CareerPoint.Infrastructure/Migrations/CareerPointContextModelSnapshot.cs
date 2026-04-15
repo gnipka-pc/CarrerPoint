@@ -75,13 +75,9 @@ namespace CareerPoint.Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
-<<<<<<< HEAD
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-=======
-                        .HasColumnType("datetime(6)");
->>>>>>> origin/main
 
                     b.HasKey("UserId", "EventId");
 
@@ -264,6 +260,9 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Group")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("HashedPassword")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -276,6 +275,9 @@ namespace CareerPoint.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Patronymic")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("longtext");
 
                     b.Property<string>("PortfolioLink")
