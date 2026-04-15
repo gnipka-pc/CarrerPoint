@@ -9,7 +9,7 @@ public interface IEventAppService
 
     public Task<List<EventDto>> GetEventsAsync();
 
-    public Task CreateEventAsync(CreateEventDto createDto);
+    public Task<EventDto> CreateEventAsync(CreateEventDto createDto);
 
     public Task DeleteEventAsync(Guid id);
 

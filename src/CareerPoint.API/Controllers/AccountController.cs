@@ -139,6 +139,34 @@ public class AccountController : ControllerBase
 
         await _userAppService.UpdateUserAsync(updateUser);
 
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        string userRole = user.UserRole switch
+        {
+            UserRole.Admin => "Admin",
+            UserRole.Manager => "Manager",
+            UserRole.DefaultUser => "DefaultUser",
+            _ => throw new UnauthorizedAccessException()
+        };
+
+        List<Claim> claims = new()
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, userRole)
+        };
+
+        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                AllowRefresh = true,
+                ExpiresUtc = DateTime.UtcNow.AddDays(2)
+            });
+
         return Ok("Пользователь успешно изменен");
     }
 
@@ -225,9 +253,8 @@ public class AccountController : ControllerBase
         {
             var userEntity = _mapper.Map<User>(user);
             userEntity.UserRole = UserRole.DefaultUser;
-            await _userAppService.CreateUserAsync(userEntity);
 
-            return Ok("Пользователь успешно добавлен");
+            return Ok(await _userAppService.CreateUserAsync(userEntity));
         }
 
         return BadRequest("Пользователь с данной почтой или логином уже существует");
@@ -491,6 +518,12 @@ public class AccountController : ControllerBase
 
     //    return Ok("Бакет удален");
     //}
+
+    [HttpGet("get-role")]
+    public async Task<IActionResult> GetRole()
+    {
+        return Ok(User.FindFirstValue(ClaimTypes.Role));
+    }
 }
 
 /// <summary>

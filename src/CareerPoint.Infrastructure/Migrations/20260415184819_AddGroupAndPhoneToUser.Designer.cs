@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    [Migration("20260415184321_AddGroupAndPhoneToUser")]
+    [Migration("20260415184819_AddGroupAndPhoneToUser")]
     partial class AddGroupAndPhoneToUser
     {
         /// <inheritdoc />

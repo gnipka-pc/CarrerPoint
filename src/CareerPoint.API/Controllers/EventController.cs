@@ -64,12 +64,10 @@ public class EventController : ControllerBase
     [Authorize(Roles = "Manager")]
     [HttpPost("create-event")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateEventAsync([FromBody] CreateEventDto createDto)
     {
-        await _eventAppService.CreateEventAsync(createDto);
-        return Ok("Ивент создан успешно");
+        return Ok(await _eventAppService.CreateEventAsync(createDto));
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ public class CareerPointContext : DbContext
             .HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
-
+        
         modelBuilder.Entity<User>()
             .Property(u => u.Directions)
             .HasConversion(
