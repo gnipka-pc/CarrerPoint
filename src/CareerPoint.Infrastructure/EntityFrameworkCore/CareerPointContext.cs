@@ -56,8 +56,7 @@ public class CareerPointContext : DbContext
             .HasKey(x => new { x.UserId, x.EventId });
 
         modelBuilder.Entity<EventFavorite>()
-            .Property(x => x.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            .Property(x => x.CreatedAt);
 
         modelBuilder.Entity<EventFavorite>()
             .HasOne(x => x.User)
