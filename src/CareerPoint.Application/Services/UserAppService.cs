@@ -13,22 +13,27 @@ public class UserAppService : IUserAppService
     readonly CareerPointContext _context;
     readonly DbSet<User> _users;
     readonly IPasswordHasher<User> _hasher;
+    readonly IMapper _mapper;
 
     public UserAppService(
         CareerPointContext context,
-        IPasswordHasher<User> hasher)
+        IPasswordHasher<User> hasher,
+        IMapper mapper)
     {
         _context = context;
         _users = context.Users;
         _hasher = hasher;
+        _mapper = mapper;
     }
 
-    public async Task CreateUserAsync(User user)
+    public async Task<UserDto> CreateUserAsync(User user)
     {
         user.HashedPassword = _hasher.HashPassword(user, user.HashedPassword);
         await _users.AddAsync(user);
 
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<UserDto>(user);
     }
 
     public async Task DeleteUserAsync(User user)

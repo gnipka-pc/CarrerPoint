@@ -22,13 +22,15 @@ public class EventAppService : IEventAppService
         _mapper = mapper;
     }
 
-    public async Task CreateEventAsync(CreateEventDto createDto)
+    public async Task<EventDto> CreateEventAsync(CreateEventDto createDto)
     {
         var ev = _mapper.Map<Event>(createDto);
         ev.Id = Guid.NewGuid();
 
         await _events.AddAsync(ev);
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<EventDto>(ev);
     }
 
     public async Task DeleteEventAsync(Guid id)
