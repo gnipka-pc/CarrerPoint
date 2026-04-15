@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    partial class CareerPointContextModelSnapshot : ModelSnapshot
+    [Migration("20260409180851_AddRegistrationForms")]
+    partial class AddRegistrationForms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +41,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<int>("EventType")
                         .HasColumnType("int");
 
-                    b.Property<string>("ExternalUrl")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("HardSkills")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -50,9 +50,6 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.Property<string>("Position")
                         .HasColumnType("longtext");
-
-                    b.Property<decimal?>("Salary")
-                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
@@ -75,13 +72,7 @@ namespace CareerPoint.Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
-<<<<<<< HEAD
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-=======
                         .HasColumnType("datetime(6)");
->>>>>>> origin/main
 
                     b.HasKey("UserId", "EventId");
 
@@ -256,9 +247,8 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Directions")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
