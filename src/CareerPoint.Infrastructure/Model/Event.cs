@@ -22,6 +22,10 @@ public class Event
 
     public string? Position { get; set; }
 
+    public decimal? Salary { get; set; }
+
+    public string? ExternalUrl { get; set; }
+
     public List<User> Users { get; set; } = new();
 
     public List<EventFavorite> EventFavorites { get; set; } = new();
