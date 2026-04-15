@@ -36,6 +36,12 @@ public class User
     // Курс (1-4)
     public Course Course { get; set; }
 
+    // Группа (например, кб10, пд1)
+    public string? Group { get; set; }
+
+    // Номер телефона
+    public string? PhoneNumber { get; set; }
+
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
 
