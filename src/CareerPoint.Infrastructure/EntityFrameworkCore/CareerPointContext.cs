@@ -47,7 +47,7 @@ public class CareerPointContext : DbContext
 
         modelBuilder.Entity<EventFavorite>()
             .Property(x => x.CreatedAt)
-            .HasDefaultValueSql("UTC_TIMESTAMP()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
         modelBuilder.Entity<EventFavorite>()
             .HasOne(x => x.User)

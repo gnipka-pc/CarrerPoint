@@ -77,7 +77,7 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("UTC_TIMESTAMP()");
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
                     b.HasKey("UserId", "EventId");
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    [Migration("20260415135704_UpdateUserDirectionsAndEventFields")]
+    [Migration("20260415140348_UpdateUserDirectionsAndEventFields")]
     partial class UpdateUserDirectionsAndEventFields
     {
         /// <inheritdoc />
@@ -80,7 +80,7 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("UTC_TIMESTAMP()");
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
                     b.HasKey("UserId", "EventId");
 
