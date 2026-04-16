@@ -26,6 +26,8 @@ public class Event
 
     public string? ExternalUrl { get; set; }
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public List<User> Users { get; set; } = new();
 
     public List<EventFavorite> EventFavorites { get; set; } = new();

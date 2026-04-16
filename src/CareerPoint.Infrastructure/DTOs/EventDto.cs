@@ -25,4 +25,6 @@ public class EventDto
     public decimal? Salary { get; set; }
 
     public string? ExternalUrl { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 }

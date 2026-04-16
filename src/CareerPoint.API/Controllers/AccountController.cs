@@ -90,6 +90,29 @@ public class AccountController : ControllerBase
         return NotFound("Пользователь не был найден");
     }
 
+    /// <summary>
+    /// Возвращает данные пользователя по ID (для менеджера/админа)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <returns>Данные пользователя</returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-user-by-id/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserByIdForManagerAsync(Guid userId)
+    {
+        User? user = await _userAppService.GetUserByIdAsync(userId);
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        UserDto userDto = _mapper.Map<UserDto>(user);
+
+        return Ok(userDto);
+    }
+
 
     /// <summary>
     /// Удаляет пользователя
