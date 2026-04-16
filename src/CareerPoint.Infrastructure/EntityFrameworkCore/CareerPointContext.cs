@@ -1,4 +1,5 @@
 using CareerPoint.Infrastructure.Model;
+using CareerPoint.Infrastructure.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareerPoint.Infrastructure.EntityFrameworkCore;
@@ -37,6 +38,14 @@ public class CareerPointContext : DbContext
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
         
+        modelBuilder.Entity<User>()
+            .Property(u => u.Directions)
+            .HasConversion(
+                v => string.Join(',', v.Select(d => (int)d)),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                      .Select(s => (Direction)int.Parse(s))
+                      .ToList());
+
         modelBuilder.Entity<Event>()
             .Property(e => e.HardSkills)
             .HasConversion(
