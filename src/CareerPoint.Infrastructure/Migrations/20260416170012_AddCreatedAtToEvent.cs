@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -16,8 +16,7 @@ namespace CareerPoint.Infrastructure.Migrations
                 table: "Events",
                 type: "datetime(6)",
                 nullable: false,
-                defaultValueSql: "CURRENT_TIMESTAMP(6)")
-                .Annotation("MySql:CharSet", "utf8mb4");
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
         }
 
         /// <inheritdoc />

@@ -53,8 +53,7 @@ public class CareerPointContext : DbContext
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
 
         modelBuilder.Entity<Event>()
-            .Property(e => e.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            .Property(e => e.CreatedAt);
 
         modelBuilder.Entity<EventFavorite>()
             .HasKey(x => new { x.UserId, x.EventId });
