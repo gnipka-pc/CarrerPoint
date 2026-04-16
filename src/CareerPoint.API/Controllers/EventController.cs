@@ -156,17 +156,18 @@ public class EventController : ControllerBase
     }
 
     /// <summary>
-    /// Добавление картинки к событию
+    /// Добавление картинки к событию по индексу от 1 до 4 включительно
     /// </summary>
     /// <param name="eventId">Айди события</param>
+    /// <param name="index">Индекс</param>
     /// <param name="file">Картинка</param>
     /// <returns>Код статуса ответа</returns>
-    [HttpPost("add-image/{eventId:guid}")]
+    [HttpPost("add-image/{eventId:guid}/{index:int}")]
     [Authorize(Roles = "Manager")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddImageToEvent(Guid eventId, IFormFile file)
+    public async Task<IActionResult> AddImageToEvent(Guid eventId, int index, IFormFile file)
     {
         if (await _eventAppService.GetEventByIdAsync(eventId) == null)
             return BadRequest("Ивента с таким айди не существует");
@@ -181,6 +182,8 @@ public class EventController : ControllerBase
         if (!new[] { ".jpg", ".jpeg", ".png" }.Contains(extension))
             return BadRequest("Расширение должно быть jpg, jpeg или png");
 
+        if (index < 1 || index > 4)
+            return BadRequest("Индекс должен быть в диапазоне от 1 до 4 включительно");
 
         try
         {
@@ -199,15 +202,27 @@ public class EventController : ControllerBase
             if (count >= 4)
                 return BadRequest("Не может быть добавлено больше 4 картинок");
 
-            using Stream stream = file.OpenReadStream();
-            await _minioClient.PutObjectAsync(new PutObjectArgs()
-                .WithBucket(eventId.ToString())
-                .WithObject(count.ToString())
-                .WithStreamData(stream)
-                .WithObjectSize(file.Length)
-                .WithContentType(file.ContentType));
+            try
+            {
+                StatObjectArgs statObjectArgs = new StatObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(index.ToString());
+                await _minioClient.StatObjectAsync(statObjectArgs);
 
-            return Ok("Картинка успешно добавлена");
+                return BadRequest("Уже есть картинка с этим индексом");
+            }
+            catch
+            {
+                using Stream stream = file.OpenReadStream();
+                await _minioClient.PutObjectAsync(new PutObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(index.ToString())
+                    .WithStreamData(stream)
+                    .WithObjectSize(file.Length)
+                    .WithContentType(file.ContentType));
+
+                return Ok("Картинка успешно добавлена");
+            }
         }
         catch (Exception)
         {
@@ -216,7 +231,7 @@ public class EventController : ControllerBase
     }
 
     /// <summary>
-    /// Получение картинки по индексу (от 0 до 3 включительно)
+    /// Получение картинки по индексу (от 1 до 4 включительно)
     /// </summary>
     /// <param name="eventId">Айди события</param>
     /// <param name="index">Индекс</param>
@@ -254,40 +269,37 @@ public class EventController : ControllerBase
     }
 
     /// <summary>
-    /// Удаляет последнюю добавленную картинку
+    /// Удаляет картинку по индексу от 1 до 4 включительно
     /// </summary>
-    /// <param name="eventId"></param>
+    /// <param name="eventId">Айди события</param>
+    /// <param name="index">Индекс</param>
     /// <returns>Код статуса ответа</returns>
-    [HttpDelete("delete-last-image/{eventId:guid}")]
+    [HttpDelete("delete-last-image/{eventId:guid}/{index:int}")]
     [Authorize(Roles = "Manager")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteLastAddedImage(Guid eventId)
+    public async Task<IActionResult> DeleteImageByIndex(Guid eventId, int index)
     {
+        if (index < 1 || index > 4)
+            return BadRequest("Индекс должен быть в диапазоне от 1 до 4 включительно");
+
         try
         {
-            var listArgs = new ListObjectsArgs()
-                .WithBucket(eventId.ToString());
-
-            int count = 0;
-            await foreach (var item in _minioClient.ListObjectsEnumAsync(listArgs))
-                count++;
-
             ObjectStat stat = await _minioClient.StatObjectAsync(
             new StatObjectArgs()
                 .WithBucket(eventId.ToString())
-                .WithObject((count - 1).ToString()));
+                .WithObject(index.ToString()));
 
             await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
                 .WithBucket(eventId.ToString())
-                .WithObject((count - 1).ToString()));
+                .WithObject(index.ToString()));
 
             return Ok("Картинка успешно удалена");
         }
         catch
         {
-            return NotFound("У события нет картинок или Minio не запущен");
+            return NotFound("У события нет картинок, Minio не запущен или нет картинки под этим индексом");
         }
     }
 }
