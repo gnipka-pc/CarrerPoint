@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
+using System.Data;
 using System.Security.AccessControl;
 using System.Security.Claims;
 
@@ -141,31 +142,7 @@ public class AccountController : ControllerBase
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        string userRole = user.UserRole switch
-        {
-            UserRole.Admin => "Admin",
-            UserRole.Manager => "Manager",
-            UserRole.DefaultUser => "DefaultUser",
-            _ => throw new UnauthorizedAccessException()
-        };
-
-        List<Claim> claims = new()
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, userRole)
-        };
-
-        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity),
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                AllowRefresh = true,
-                ExpiresUtc = DateTime.UtcNow.AddDays(2)
-            });
+        await SignInWithClaimsAsync(user.UserRole, id);
 
         return Ok("Пользователь успешно изменен");
     }
@@ -277,31 +254,7 @@ public class AccountController : ControllerBase
         if (user is null)
             return BadRequest("Почта или пароль не правильные");
 
-        string userRole = user.UserRole switch
-        {
-            UserRole.Admin => "Admin",
-            UserRole.Manager => "Manager",
-            UserRole.DefaultUser => "DefaultUser",
-            _ => throw new UnauthorizedAccessException()
-        };
-
-        List<Claim> claims = new()
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, userRole)
-        };
-
-        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity),
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                AllowRefresh = true,
-                ExpiresUtc = DateTime.UtcNow.AddDays(2)
-            });
+        await SignInWithClaimsAsync(user.UserRole, user.Id.ToString());
 
         return Ok("Вы успешно вошли в аккаунт");
     }
@@ -519,10 +472,40 @@ public class AccountController : ControllerBase
     //    return Ok("Бакет удален");
     //}
 
-    [HttpGet("get-role")]
-    public async Task<IActionResult> GetRole()
+    //[HttpGet("get-role")]
+    //public async Task<IActionResult> GetRole()
+    //{
+    //    return Ok(User.FindFirstValue(ClaimTypes.Role));
+    //}
+
+    private async Task SignInWithClaimsAsync(UserRole role, string id)
     {
-        return Ok(User.FindFirstValue(ClaimTypes.Role));
+        string userRole = role switch
+        {
+            UserRole.Admin => "Admin",
+            UserRole.Manager => "Manager",
+            UserRole.DefaultUser => "DefaultUser",
+            _ => throw new UnauthorizedAccessException()
+        };
+
+        List<Claim> claims = new()
+        {
+            new Claim(ClaimTypes.NameIdentifier, id),
+            new Claim(ClaimTypes.Role, userRole)
+        };
+
+        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                AllowRefresh = true,
+                ExpiresUtc = DateTime.UtcNow.AddDays(2)
+            });
+
     }
 }
 
