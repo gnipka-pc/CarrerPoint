@@ -33,7 +33,7 @@ public class MinioBucketInitializerHostedService : IHostedService
         }
         catch
         {
-            _logger.LogWarning("Minio бакет для аватарок не проинициализирован");
+            _logger.LogWarning($"Minio бакет {_bucketName} не проинициализирован");
         }
         
     }
