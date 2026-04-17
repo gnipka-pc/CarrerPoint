@@ -312,8 +312,6 @@ public class EventController : ControllerBase
         MemoryStream zipStream = new();
         using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, leaveOpen: true))
         {
-            using MemoryStream imageStream = new();
-
             await foreach (var item in _minioClient.ListObjectsEnumAsync(new ListObjectsArgs().WithBucket(eventId.ToString())))
             {
                 ObjectStat stat = await _minioClient.StatObjectAsync(
@@ -323,7 +321,8 @@ public class EventController : ControllerBase
 
                 ZipArchiveEntry entry = archive.CreateEntry($"{item.Key}.{stat.ContentType.Split("/")[1]}", CompressionLevel.Optimal);
                 using Stream entryStream = entry.Open();
-                //FileStream imageStream = new(item.Key, FileMode.Open, FileAccess.Read);
+
+                using MemoryStream imageStream = new();
                 await _minioClient.GetObjectAsync(new GetObjectArgs()
                     .WithBucket(eventId.ToString())
                     .WithObject(item.Key)
@@ -337,7 +336,7 @@ public class EventController : ControllerBase
         
         zipStream.Position = 0;
 
-        return File(zipStream.ToArray(), "application/zip", "images");
+        return File(zipStream, "application/zip", "images");
     }
 
     //[HttpPost("test")]
