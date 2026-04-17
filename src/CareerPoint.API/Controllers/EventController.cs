@@ -160,7 +160,7 @@ public class EventController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddImageToEvent(Guid eventId, int index, IFormFile file)
+    public async Task<IActionResult> AddImageByIndexAsync(Guid eventId, int index, IFormFile file)
     {
         if (await _eventAppService.GetEventByIdAsync(eventId) == null)
             return BadRequest("Ивента с таким айди не существует");
@@ -235,7 +235,7 @@ public class EventController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetImageOfEvent(Guid eventId, string index)
+    public async Task<IActionResult> GetImageByIndexAsync(Guid eventId, string index)
     {
         try
         {
@@ -273,7 +273,7 @@ public class EventController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteImageByIndex(Guid eventId, int index)
+    public async Task<IActionResult> DeleteImageByIndexAsync(Guid eventId, int index)
     {
         if (index < 1 || index > 4)
             return BadRequest("Индекс должен быть в диапазоне от 1 до 4 включительно");
