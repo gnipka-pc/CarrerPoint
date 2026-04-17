@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
+using System.IO.Compression;
 
 namespace CareerPoint.Web.Controllers;
 
@@ -296,4 +297,56 @@ public class EventController : ControllerBase
             return NotFound("У события нет картинок, Minio не запущен или нет картинки под этим индексом");
         }
     }
+
+    /// <summary>
+    /// Возвращает зип архив с картинками (может быть пустым)
+    /// </summary>
+    /// <param name="eventId">Айди события</param>
+    /// <returns>Зип архив со всеми фотографиями или пустой архив, если их нет</returns>
+    [HttpGet("get-images/{eventId:guid}")]
+    public async Task<IActionResult> GetImagesAsync(Guid eventId)
+    {
+        if (!await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(eventId.ToString())))
+            return BadRequest("У события нет картинок");
+
+        MemoryStream zipStream = new();
+        using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using MemoryStream imageStream = new();
+
+            await foreach (var item in _minioClient.ListObjectsEnumAsync(new ListObjectsArgs().WithBucket(eventId.ToString())))
+            {
+                ObjectStat stat = await _minioClient.StatObjectAsync(
+                    new StatObjectArgs()
+                        .WithBucket(eventId.ToString())
+                        .WithObject(item.Key));
+
+                ZipArchiveEntry entry = archive.CreateEntry($"{item.Key}.{stat.ContentType.Split("/")[1]}", CompressionLevel.Optimal);
+                using Stream entryStream = entry.Open();
+                //FileStream imageStream = new(item.Key, FileMode.Open, FileAccess.Read);
+                await _minioClient.GetObjectAsync(new GetObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(item.Key)
+                    .WithCallbackStream(async stream => await stream.CopyToAsync(imageStream)));
+
+                imageStream.Position = 0;
+
+                await imageStream.CopyToAsync(entryStream);
+            }
+        }
+        
+        zipStream.Position = 0;
+
+        return File(zipStream.ToArray(), "application/zip", "images");
+    }
+
+    //[HttpPost("test")]
+    //public async Task<IActionResult> Test(Guid id)
+    //{
+    //    //using MemoryStream ms = new();
+
+    //    //await file.CopyToAsync(ms);
+
+    //    //return File(ms.ToArray(), file.ContentType);
+    //}
 }
