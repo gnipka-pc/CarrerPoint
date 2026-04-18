@@ -22,15 +22,14 @@ public class UpdateUserDto
 
     public bool IsSubscribedToNotifications { get; set; }
 
-    // Возраст
     public int Age { get; set; }
 
-    // Направление
     public Direction Direction { get; set; }
 
-    // Курс
+    /// <summary>Проект пользователя (ПАЗЛ / КОД)</summary>
+    public Project Project { get; set; }
+
     public Course Course { get; set; }
 
-    // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();
 }

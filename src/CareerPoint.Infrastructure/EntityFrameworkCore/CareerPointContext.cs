@@ -1,3 +1,4 @@
+using CareerPoint.Infrastructure.Enums;
 using CareerPoint.Infrastructure.Model;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,12 @@ public class CareerPointContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<User>().HasMany(u => u.Events).WithMany(e => e.Users);
+
+        modelBuilder.Entity<User>(b =>
+        {
+            b.Property(u => u.Direction).HasConversion<string>();
+            b.Property(u => u.Project).HasConversion<string>().HasDefaultValue(Project.Pazl);
+        });
 
         modelBuilder.Entity<User>()
             .Property(u => u.Skills)

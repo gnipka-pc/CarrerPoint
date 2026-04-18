@@ -191,6 +191,26 @@ public class AccountController : ControllerBase
 
 
     /// <summary>
+    /// Получает список пользователей с фильтрацией по проекту, направлению и курсу.
+    /// Все параметры опциональны и поддерживают мультивыбор.
+    /// </summary>
+    /// <remarks>
+    /// Пример запроса:
+    /// GET /api/account/get-users?projects=Pazl&amp;projects=Code&amp;directions=Backend&amp;courses=1&amp;courses=2
+    /// </remarks>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-users")]
+    [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetUsersFilteredAsync([FromQuery] UserFilterDto filter)
+    {
+        List<User> users = await _userAppService.GetUsersFilteredAsync(filter);
+        return Ok(_mapper.Map<List<UserDto>>(users));
+    }
+
+
+    /// <summary>
     /// Регистрация пользователя
     /// </summary>
     /// <param name="user">Пользователь</param>

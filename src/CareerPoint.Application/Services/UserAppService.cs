@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CareerPoint.Infrastructure.DTOs;
 using CareerPoint.Infrastructure.EntityFrameworkCore;
 using CareerPoint.Infrastructure.Interfaces;
@@ -27,7 +27,6 @@ public class UserAppService : IUserAppService
     {
         user.HashedPassword = _hasher.HashPassword(user, user.HashedPassword);
         await _users.AddAsync(user);
-
         await _context.SaveChangesAsync();
     }
 
@@ -39,9 +38,7 @@ public class UserAppService : IUserAppService
 
     public async Task<User?> GetUserByIdAsync(Guid id)
     {
-        User? user = await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
-
-        return user;
+        return await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<List<User>> GetUsersAsync()
@@ -49,10 +46,26 @@ public class UserAppService : IUserAppService
         return await _users.AsNoTracking().ToListAsync();
     }
 
+    /// <inheritdoc/>
+    public async Task<List<User>> GetUsersFilteredAsync(UserFilterDto filter)
+    {
+        IQueryable<User> query = _users.AsNoTracking();
+
+        if (filter.Projects is { Count: > 0 })
+            query = query.Where(u => filter.Projects.Contains(u.Project));
+
+        if (filter.Directions is { Count: > 0 })
+            query = query.Where(u => filter.Directions.Contains(u.Direction));
+
+        if (filter.Courses is { Count: > 0 })
+            query = query.Where(u => filter.Courses.Contains(u.Course));
+
+        return await query.ToListAsync();
+    }
+
     public async Task UpdateUserAsync(User user)
     {
         _users.Update(user);
-
         await _context.SaveChangesAsync();
     }
 
@@ -69,7 +82,6 @@ public class UserAppService : IUserAppService
 
         user.Events.Add(ev);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
@@ -86,13 +98,15 @@ public class UserAppService : IUserAppService
 
         user.Events.Remove(ev);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
     public async Task<List<Event>> GetUserEventsAsync(Guid userId)
     {
-        User? user = await _users.Include(u => u.Events).AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId) 
+        User? user = await _users
+            .Include(u => u.Events)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new ArgumentNullException("Пользователя с данным id не существует");
 
         return user.Events;
