@@ -21,4 +21,10 @@ public class EventDto
     public string[] HardSkills { get; set; } = Array.Empty<string>();
 
     public string? Position { get; set; }
+
+    public decimal? Salary { get; set; }
+
+    public string? ExternalUrl { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 }

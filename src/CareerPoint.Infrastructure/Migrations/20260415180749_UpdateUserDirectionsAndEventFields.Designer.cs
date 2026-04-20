@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    partial class CareerPointContextModelSnapshot : ModelSnapshot
+    [Migration("20260415180749_UpdateUserDirectionsAndEventFields")]
+    partial class UpdateUserDirectionsAndEventFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,9 +30,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -261,9 +261,6 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Group")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("HashedPassword")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -276,9 +273,6 @@ namespace CareerPoint.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Patronymic")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PhoneNumber")
                         .HasColumnType("longtext");
 
                     b.Property<string>("PortfolioLink")

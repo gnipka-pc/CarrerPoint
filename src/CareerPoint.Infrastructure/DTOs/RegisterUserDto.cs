@@ -27,11 +27,17 @@ public class RegisterUserDto
     // Возраст
     public int Age { get; set; }
 
-    // Направление
-    public Direction Direction { get; set; }
+    // Направления
+    public List<Direction> Directions { get; set; } = new();
 
     // Курс
     public Course Course { get; set; }
+
+    // Группа
+    public string? Group { get; set; }
+
+    // Номер телефона
+    public string? PhoneNumber { get; set; }
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();

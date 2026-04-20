@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
 using CareerPoint.Application.Mappings;
 using CareerPoint.Application.Services;
 using CareerPoint.Infrastructure.DTOs;
@@ -9,8 +11,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Minio;
-using System.Reflection;
-using System.Text.Json.Serialization;
 using Serilog;
 
 namespace CareerPoint.API;
@@ -56,6 +56,7 @@ public class Program
         builder.Services.AddTransient<IUserAppService, UserAppService>();
         builder.Services.AddTransient<IAuthAppService, AuthAppService>();
         builder.Services.AddTransient<INotificationAppService, NotificationAppService>();
+        builder.Services.AddTransient<IFormAppService, FormAppService>();
         builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
         builder.Services.AddTransient<IFavoriteAppService, FavoriteAppService>();
 

@@ -14,5 +14,5 @@ public class EventFavorite
     /// <summary>
     /// Когда добавили в избранное.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
