@@ -7,10 +7,11 @@ public interface IUserAppService
 {
     Task<User?> GetUserByIdAsync(Guid id);
 
-    Task<List<User>> GetUsersAsync();
-
-    /// <summary>Получить список пользователей с фильтрацией по проекту, направлению и курсу</summary>
-    Task<List<User>> GetUsersFilteredAsync(UserFilterDto filter);
+    /// <summary>
+    /// Получить список пользователей.
+    /// Если filter передан — применяет фильтрацию по проекту, направлению и курсу.
+    /// </summary>
+    Task<List<User>> GetUsersAsync(UserFilterDto? filter = null);
 
     Task CreateUserAsync(User userDto);
 

@@ -41,24 +41,22 @@ public class UserAppService : IUserAppService
         return await _users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public async Task<List<User>> GetUsersAsync()
-    {
-        return await _users.AsNoTracking().ToListAsync();
-    }
-
     /// <inheritdoc/>
-    public async Task<List<User>> GetUsersFilteredAsync(UserFilterDto filter)
+    public async Task<List<User>> GetUsersAsync(UserFilterDto? filter = null)
     {
         IQueryable<User> query = _users.AsNoTracking();
 
-        if (filter.Projects is { Count: > 0 })
-            query = query.Where(u => filter.Projects.Contains(u.Project));
+        if (filter != null)
+        {
+            if (filter.Projects is { Count: > 0 })
+                query = query.Where(u => filter.Projects.Contains(u.Project));
 
-        if (filter.Directions is { Count: > 0 })
-            query = query.Where(u => filter.Directions.Contains(u.Direction));
+            if (filter.Directions is { Count: > 0 })
+                query = query.Where(u => filter.Directions.Contains(u.Direction));
 
-        if (filter.Courses is { Count: > 0 })
-            query = query.Where(u => filter.Courses.Contains(u.Course));
+            if (filter.Courses is { Count: > 0 })
+                query = query.Where(u => filter.Courses.Contains(u.Course));
+        }
 
         return await query.ToListAsync();
     }

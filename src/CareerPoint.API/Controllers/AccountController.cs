@@ -205,7 +205,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetUsersFilteredAsync([FromQuery] UserFilterDto filter)
     {
-        List<User> users = await _userAppService.GetUsersFilteredAsync(filter);
+        List<User> users = await _userAppService.GetUsersAsync(filter);
         return Ok(_mapper.Map<List<UserDto>>(users));
     }
 

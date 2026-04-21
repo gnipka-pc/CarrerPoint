@@ -30,12 +30,6 @@ public class CareerPointContext : DbContext
 
         modelBuilder.Entity<User>().HasMany(u => u.Events).WithMany(e => e.Users);
 
-        modelBuilder.Entity<User>(b =>
-        {
-            b.Property(u => u.Direction).HasConversion<string>();
-            b.Property(u => u.Project).HasConversion<string>().HasDefaultValue(Project.Pazl);
-        });
-
         modelBuilder.Entity<User>()
             .Property(u => u.Skills)
             .HasConversion(
@@ -46,7 +40,6 @@ public class CareerPointContext : DbContext
         {
             b.HasKey(f => f.Id);
 
-            // Одна форма на одно мероприятие
             b.HasIndex(f => f.EventId).IsUnique();
 
             b.HasOne(f => f.Event)
@@ -72,7 +65,6 @@ public class CareerPointContext : DbContext
         {
             b.HasKey(ff => ff.Id);
 
-            // Тип поля хранится как строка
             b.Property(ff => ff.Type).HasConversion<string>();
 
             b.HasMany(ff => ff.Options)
@@ -85,7 +77,6 @@ public class CareerPointContext : DbContext
         {
             b.HasKey(o => o.Id);
 
-            // Value необязателен; если не указан — при сравнении ответов используется Text
             b.Property(o => o.Value).IsRequired(false);
         });
 
@@ -93,7 +84,6 @@ public class CareerPointContext : DbContext
         {
             b.HasKey(s => s.Id);
 
-            // Студент может заполнить форму только один раз
             b.HasIndex(s => new { s.FormId, s.StudentId }).IsUnique();
 
             b.HasOne(s => s.Student)

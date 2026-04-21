@@ -10,20 +10,12 @@ namespace CareerPoint.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Добавить поле Project (хранится как строка, дефолт — Pazl)
-            migrationBuilder.AddColumn<string>(
+            migrationBuilder.AddColumn<int>(
                 name: "Project",
                 table: "Users",
-                type: "longtext",
+                type: "int",
                 nullable: false,
-                defaultValue: "Pazl")
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            // Direction ранее хранил значения Pazl/Code (старый enum).
-            // Сбрасываем невалидные значения в Backend.
-            migrationBuilder.Sql(
-                "UPDATE Users SET Direction = 'Backend' " +
-                "WHERE Direction NOT IN ('Backend', 'Frontend', 'Design')");
+                defaultValue: 0);
         }
 
         /// <inheritdoc />
