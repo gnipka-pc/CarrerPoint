@@ -148,9 +148,14 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto userDto)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Проверка соответствия ID из тела запроса и из claims
+        if (userDto.Id != Guid.Parse(id))
+            return BadRequest("ID пользователя в запросе не совпадает с ID из токена");
 
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
@@ -368,7 +373,7 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление данных пользователя по ID (для менеджера)
+    /// Обновление данных пользователя по ID (для менеджера/админа)
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="userDto">Новые данные</param>
@@ -387,10 +392,24 @@ public class AccountController : ControllerBase
         if (existingUser is null)
             return NotFound("Пользователь не найден");
 
-        // Обновляем только разрешенные поля
-        // (не меняем пароль и ID)
+        // Обновляем все поля (кроме пароля и ID)
         existingUser.Username = userDto.Username;
         existingUser.Email = userDto.Email;
+        existingUser.Name = userDto.Name;
+        existingUser.Surname = userDto.Surname;
+        existingUser.Patronymic = userDto.Patronymic;
+        existingUser.Description = userDto.Description;
+        existingUser.TelegramLink = userDto.TelegramLink;
+        existingUser.PortfolioLink = userDto.PortfolioLink;
+        existingUser.IsSubscribedToNotifications = userDto.IsSubscribedToNotifications;
+        existingUser.Age = userDto.Age;
+        existingUser.Directions = userDto.Directions;
+        existingUser.Course = userDto.Course;
+        existingUser.Group = userDto.Group;
+        existingUser.PhoneNumber = userDto.PhoneNumber;
+        existingUser.Skills = userDto.Skills;
+        existingUser.UserRole = userDto.UserRole;
+        existingUser.AvatarUrl = userDto.AvatarUrl;
 
         await _userAppService.UpdateUserAsync(existingUser);
 
