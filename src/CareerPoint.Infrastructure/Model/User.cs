@@ -1,5 +1,4 @@
 using CareerPoint.Infrastructure.Enums;
-using Microsoft.AspNetCore.Identity;
 
 namespace CareerPoint.Infrastructure.Model;
 
@@ -35,6 +34,9 @@ public class User
 
     // Курс (1-4)
     public Course Course { get; set; }
+    
+    // Проект (ПАЗЛ / КОД)
+    public Project Project { get; set; }
 
     // Группа (например, кб10, пд1)
     public string? Group { get; set; }

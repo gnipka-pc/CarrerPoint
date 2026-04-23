@@ -29,6 +29,9 @@ public class RegisterUserDto
 
     // Направления
     public List<Direction> Directions { get; set; } = new();
+    
+    // Проект
+    public Project Project { get; set; }
 
     // Курс
     public Course Course { get; set; }
