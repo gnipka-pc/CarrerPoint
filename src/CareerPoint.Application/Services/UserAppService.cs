@@ -49,9 +49,25 @@ public class UserAppService : IUserAppService
         return user;
     }
 
-    public async Task<List<User>> GetUsersAsync()
+    public async Task<List<User>> GetUsersAsync(UserFilterDto? filter = null)
     {
-        return await _users.AsNoTracking().ToListAsync();
+        IQueryable<User> query = _users.AsNoTracking();
+        
+        if (filter != null)
+        {
+            if (filter.Projects is { Count: > 0 })
+                query = query.Where(u => filter.Projects.Contains(u.Project));
+
+            if (filter.Directions is { Count: > 0 })
+                query = query.Where(u => 
+                    u.Directions.Any(d => filter.Directions.Contains(d))
+                );
+
+            if (filter.Courses is { Count: > 0 })
+                query = query.Where(u => filter.Courses.Contains(u.Course));
+        }
+        
+        return await query.ToListAsync();
     }
 
     public async Task UpdateUserAsync(User user)

@@ -32,6 +32,9 @@ public class UserDto
 
     // Курс
     public Course Course { get; set; }
+    
+    // Проект
+    public Project Project { get; set; }
 
     // Группа
     public string? Group { get; set; }
