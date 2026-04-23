@@ -7,7 +7,7 @@ public interface IUserAppService
 {
     public Task<User?> GetUserByIdAsync(Guid id);
 
-    public Task<List<User>> GetUsersAsync();
+    public Task<List<User>> GetUsersAsync(UserFilterDto? filter = null);
 
     public Task<UserDto> CreateUserAsync(User userDto);
 
