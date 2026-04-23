@@ -1,11 +1,9 @@
-﻿using CareerPoint.Infrastructure.Enums;
+using CareerPoint.Infrastructure.Enums;
 
 namespace CareerPoint.Infrastructure.DTOs;
 
-public class EventDto
+public class CreateEventDto
 {
-    public Guid Id { get; set; }
-
     public required string Title { get; set; }
 
     public required string Description { get; set; }
@@ -21,10 +19,4 @@ public class EventDto
     public string[] HardSkills { get; set; } = Array.Empty<string>();
 
     public string? Position { get; set; }
-
-    public decimal? Salary { get; set; }
-
-    public string? ExternalUrl { get; set; }
-
-    public DateTime CreatedAt { get; set; }
 }

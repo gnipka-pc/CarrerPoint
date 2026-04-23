@@ -7,11 +7,11 @@ public interface IEventAppService
 {
     public Task<EventDto?> GetEventByIdAsync(Guid id);
 
-    public Task<List<EventDto>> GetEventsAsync();
+    public Task<List<EventDto>> GetEventsAsync(EventFilterDto? filterDto = null);
 
-    public Task CreateEventAsync(EventDto evDto);
+    public Task<EventDto> CreateEventAsync(CreateEventDto createDto);
 
-    public Task DeleteEventAsync(EventDto ev);
+    public Task DeleteEventAsync(Guid id);
 
-    public Task UpdateEventAsync(EventDto newEventDto);
+    public Task UpdateEventAsync(Guid id, EventDto eventDto);
 }

@@ -4,6 +4,7 @@ using CareerPoint.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CareerPoint.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerPointContext))]
-    partial class CareerPointContextModelSnapshot : ModelSnapshot
+    [Migration("20260409180851_AddRegistrationForms")]
+    partial class AddRegistrationForms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,9 +31,6 @@ namespace CareerPoint.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -41,9 +41,6 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<int>("EventType")
                         .HasColumnType("int");
 
-                    b.Property<string>("ExternalUrl")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("HardSkills")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -53,9 +50,6 @@ namespace CareerPoint.Infrastructure.Migrations
 
                     b.Property<string>("Position")
                         .HasColumnType("longtext");
-
-                    b.Property<decimal?>("Salary")
-                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
@@ -253,15 +247,11 @@ namespace CareerPoint.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Directions")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Group")
                         .HasColumnType("longtext");
 
                     b.Property<string>("HashedPassword")
@@ -278,15 +268,9 @@ namespace CareerPoint.Infrastructure.Migrations
                     b.Property<string>("Patronymic")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("PortfolioLink")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<int>("Project")
-                        .HasColumnType("int");
 
                     b.Property<string>("Skills")
                         .IsRequired()

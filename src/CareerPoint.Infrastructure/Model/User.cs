@@ -1,5 +1,4 @@
 using CareerPoint.Infrastructure.Enums;
-using Microsoft.AspNetCore.Identity;
 
 namespace CareerPoint.Infrastructure.Model;
 
@@ -30,11 +29,20 @@ public class User
     // Возраст пользователя
     public int Age { get; set; }
 
-    // Направление обучения
-    public Direction Direction { get; set; }
+    // Направления обучения
+    public List<Direction> Directions { get; set; } = new();
 
     // Курс (1-4)
     public Course Course { get; set; }
+    
+    // Проект (ПАЗЛ / КОД)
+    public Project Project { get; set; }
+
+    // Группа (например, кб10, пд1)
+    public string? Group { get; set; }
+
+    // Номер телефона
+    public string? PhoneNumber { get; set; }
 
     // Навыки
     public string[] Skills { get; set; } = Array.Empty<string>();

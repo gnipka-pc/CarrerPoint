@@ -27,6 +27,9 @@ public class UpdateUserDto
 
     // Направление
     public Direction Direction { get; set; }
+    
+    // Проект
+    public Project Project { get; set; }
 
     // Курс
     public Course Course { get; set; }

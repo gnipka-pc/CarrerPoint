@@ -22,34 +22,87 @@ public class EventAppService : IEventAppService
         _mapper = mapper;
     }
 
-    public async Task CreateEventAsync(EventDto evDto)
+    public async Task<EventDto> CreateEventAsync(CreateEventDto createDto)
     {
-        await _events.AddAsync(_mapper.Map<Event>(evDto));
+        var ev = _mapper.Map<Event>(createDto);
+        ev.Id = Guid.NewGuid();
 
+        await _events.AddAsync(ev);
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<EventDto>(ev);
     }
 
-    public async Task DeleteEventAsync(EventDto ev)
+    public async Task DeleteEventAsync(Guid id)
     {
-        _events.Remove(_mapper.Map<Event>(ev));
-        await _context.SaveChangesAsync();
+        var ev = await _events.FindAsync(id);
+        if (ev != null)
+        {
+            _events.Remove(ev);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<EventDto?> GetEventByIdAsync(Guid id)
     {
-        Event? ev = await _events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+        Event? ev = await _events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
 
         return _mapper.Map<EventDto?>(ev);
     }
 
-    public async Task<List<EventDto>> GetEventsAsync()
+    public async Task<List<EventDto>> GetEventsAsync(EventFilterDto? filterDto = null)
     {
-        return await _events.AsNoTracking().Select(ev => _mapper.Map<EventDto>(ev)).ToListAsync();
+        IQueryable<Event> query = _events.AsNoTracking();
+
+        if (filterDto?.EventTypes is { Count: > 0 })
+        {
+            query = query.Where(ev => filterDto.EventTypes!.Contains(ev.EventType));
+        }
+
+        if (filterDto?.StartDateFrom != null)
+        {
+            query = query.Where(ev => ev.StartDate >= filterDto.StartDateFrom.Value);
+        }
+
+        if (filterDto?.StartDateTo != null)
+        {
+            query = query.Where(ev => ev.StartDate <= filterDto.StartDateTo.Value);
+        }
+
+        if (filterDto?.EndDateFrom != null)
+        {
+            query = query.Where(ev => ev.EndDate != null && ev.EndDate >= filterDto.EndDateFrom.Value);
+        }
+
+        if (filterDto?.EndDateTo != null)
+        {
+            query = query.Where(ev => ev.EndDate != null && ev.EndDate <= filterDto.EndDateTo.Value);
+        }
+
+        List<Event> events = await query
+            .OrderByDescending(ev => ev.StartDate)
+            .ToListAsync();
+
+        return _mapper.Map<List<EventDto>>(events);
     }
 
-    public async Task UpdateEventAsync(EventDto newEventDto)
+    public async Task UpdateEventAsync(Guid id, EventDto eventDto)
     {
-        _events.Update(_mapper.Map<Event>(newEventDto));
+        var existingEvent = await _events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (existingEvent == null)
+            return;
+
+        existingEvent.Title = eventDto.Title;
+        existingEvent.Description = eventDto.Description;
+        existingEvent.EventType = eventDto.EventType;
+        existingEvent.StartDate = eventDto.StartDate;
+        existingEvent.EndDate = eventDto.EndDate;
+        existingEvent.Organization = eventDto.Organization;
+        existingEvent.HardSkills = eventDto.HardSkills;
+        existingEvent.Position = eventDto.Position;
 
         await _context.SaveChangesAsync();
     }

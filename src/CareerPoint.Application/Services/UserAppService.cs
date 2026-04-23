@@ -13,22 +13,27 @@ public class UserAppService : IUserAppService
     readonly CareerPointContext _context;
     readonly DbSet<User> _users;
     readonly IPasswordHasher<User> _hasher;
+    readonly IMapper _mapper;
 
     public UserAppService(
         CareerPointContext context,
-        IPasswordHasher<User> hasher)
+        IPasswordHasher<User> hasher,
+        IMapper mapper)
     {
         _context = context;
         _users = context.Users;
         _hasher = hasher;
+        _mapper = mapper;
     }
 
-    public async Task CreateUserAsync(User user)
+    public async Task<UserDto> CreateUserAsync(User user)
     {
         user.HashedPassword = _hasher.HashPassword(user, user.HashedPassword);
         await _users.AddAsync(user);
 
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<UserDto>(user);
     }
 
     public async Task DeleteUserAsync(User user)
@@ -44,9 +49,25 @@ public class UserAppService : IUserAppService
         return user;
     }
 
-    public async Task<List<User>> GetUsersAsync()
+    public async Task<List<User>> GetUsersAsync(UserFilterDto? filter = null)
     {
-        return await _users.AsNoTracking().ToListAsync();
+        IQueryable<User> query = _users.AsNoTracking();
+        
+        if (filter != null)
+        {
+            if (filter.Projects is { Count: > 0 })
+                query = query.Where(u => filter.Projects.Contains(u.Project));
+
+            if (filter.Directions is { Count: > 0 })
+                query = query.Where(u => 
+                    u.Directions.Any(d => filter.Directions.Contains(d))
+                );
+
+            if (filter.Courses is { Count: > 0 })
+                query = query.Where(u => filter.Courses.Contains(u.Course));
+        }
+        
+        return await query.ToListAsync();
     }
 
     public async Task UpdateUserAsync(User user)

@@ -12,6 +12,22 @@ public class Event
 
     public EventType EventType { get; set; }
 
+    public DateTime StartDate { get; set; }
+
+    public DateTime? EndDate { get; set; }
+
+    public string? Organization { get; set; }
+
+    public string[] HardSkills { get; set; } = Array.Empty<string>();
+
+    public string? Position { get; set; }
+
+    public decimal? Salary { get; set; }
+
+    public string? ExternalUrl { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public List<User> Users { get; set; } = new();
 
     public List<EventFavorite> EventFavorites { get; set; } = new();

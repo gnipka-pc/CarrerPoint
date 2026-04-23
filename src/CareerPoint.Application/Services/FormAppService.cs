@@ -1,0 +1,328 @@
+using CareerPoint.Infrastructure.DTOs;
+using CareerPoint.Infrastructure.EntityFrameworkCore;
+using CareerPoint.Infrastructure.Interfaces;
+using CareerPoint.Infrastructure.Model;
+using Microsoft.EntityFrameworkCore;
+
+namespace CareerPoint.Application.Services;
+
+public class FormAppService : IFormAppService
+{
+    private readonly CareerPointContext _context;
+
+    public FormAppService(CareerPointContext context)
+    {
+        _context = context;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // МЕНЕДЖЕР
+    // ══════════════════════════════════════════════════════════════
+
+    /// <inheritdoc/>
+    public async Task<FormResponseDto> CreateFormAsync(CreateFormDto dto)
+    {
+        bool alreadyExists = await _context.Forms.AnyAsync(f => f.EventId == dto.EventId);
+        if (alreadyExists)
+            throw new InvalidOperationException($"Форма для мероприятия {dto.EventId} уже существует.");
+
+        var form = new Form
+        {
+            Id = Guid.NewGuid(),
+            EventId = dto.EventId,
+            Title = dto.Title,
+            Description = dto.Description,
+            IsOpen = true,
+            DeadlineAt = dto.DeadlineAt,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        form.Fields = MapFields(dto.Fields, form.Id);
+
+        await _context.Forms.AddAsync(form);
+        await _context.SaveChangesAsync();
+
+        return MapToResponseDto(form);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FormResponseDto> UpdateFormAsync(Guid formId, UpdateFormDto dto)
+    {
+        Form form = await GetFormOrThrowAsync(formId);
+
+        form.Title = dto.Title;
+        form.Description = dto.Description;
+        form.IsOpen = dto.IsOpen;
+        form.DeadlineAt = dto.DeadlineAt;
+        form.UpdatedAt = DateTime.UtcNow;
+
+        // Удаляем старые поля и заменяем новыми
+        _context.FormFields.RemoveRange(form.Fields);
+        form.Fields = MapFields(dto.Fields, form.Id);
+
+        await _context.SaveChangesAsync();
+
+        return MapToResponseDto(form);
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteFormAsync(Guid formId)
+    {
+        Form form = await GetFormOrThrowAsync(formId);
+
+        _context.Forms.Remove(form);
+        await _context.SaveChangesAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<FormResponseDto?> GetFormByEventIdAsync(Guid eventId)
+    {
+        Form? form = await _context.Forms
+            .Include(f => f.Fields.OrderBy(ff => ff.Order))
+                .ThenInclude(ff => ff.Options.OrderBy(o => o.OrderIndex))
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.EventId == eventId);
+
+        return form is null ? null : MapToResponseDto(form);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FormResultsDto> GetFormResultsAsync(Guid formId)
+    {
+        Form form = await _context.Forms
+            .Include(f => f.Fields)
+                .ThenInclude(ff => ff.Options)
+            .Include(f => f.Submissions)
+                .ThenInclude(s => s.Answers)
+                    .ThenInclude(a => a.Field)
+            .Include(f => f.Submissions)
+                .ThenInclude(s => s.Student)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == formId)
+            ?? throw new KeyNotFoundException($"Форма {formId} не найдена.");
+
+        return new FormResultsDto
+        {
+            FormId = form.Id,
+            FormTitle = form.Title,
+            TotalSubmissions = form.Submissions.Count,
+            Submissions = form.Submissions
+                .Select(s => MapSubmissionToDto(s))
+                .ToList()
+        };
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // СТУДЕНТ
+    // ══════════════════════════════════════════════════════════════
+
+    /// <inheritdoc/>
+    public async Task<FormSubmissionResponseDto> SubmitFormAsync(
+        Guid eventId,
+        Guid studentId,
+        SubmitFormDto dto)
+    {
+        Form form = await _context.Forms
+            .Include(f => f.Fields)
+            .FirstOrDefaultAsync(f => f.EventId == eventId)
+            ?? throw new KeyNotFoundException($"Форма для мероприятия {eventId} не найдена.");
+
+        if (!form.IsOpen)
+            throw new InvalidOperationException("Форма закрыта и не принимает ответы.");
+
+        if (form.DeadlineAt.HasValue && DateTime.UtcNow > form.DeadlineAt.Value)
+            throw new InvalidOperationException("Срок подачи заявки истёк.");
+
+        bool alreadySubmitted = await _context.FormSubmissions
+            .AnyAsync(s => s.FormId == form.Id && s.StudentId == studentId);
+
+        if (alreadySubmitted)
+            throw new InvalidOperationException("Вы уже заполняли эту форму.");
+
+        // Проверка обязательных полей
+        var requiredFieldIds = form.Fields
+            .Where(f => f.IsRequired)
+            .Select(f => f.Id)
+            .ToHashSet();
+
+        var answeredFieldIds = dto.Answers.Select(a => a.FieldId).ToHashSet();
+        var missingIds = requiredFieldIds.Except(answeredFieldIds).ToList();
+
+        if (missingIds.Count > 0)
+        {
+            var missingTexts = form.Fields
+                .Where(f => missingIds.Contains(f.Id))
+                .Select(f => f.Text);
+
+            throw new InvalidOperationException(
+                $"Не заполнены обязательные поля: {string.Join(", ", missingTexts)}");
+        }
+
+        var validFieldIds = form.Fields.Select(f => f.Id).ToHashSet();
+
+        var submission = new FormSubmission
+        {
+            Id = Guid.NewGuid(),
+            FormId = form.Id,
+            StudentId = studentId,
+            SubmittedAt = DateTime.UtcNow,
+            Answers = dto.Answers
+                .Where(a => validFieldIds.Contains(a.FieldId))
+                .Select(a => new SubmissionAnswer
+                {
+                    Id = Guid.NewGuid(),
+                    FieldId = a.FieldId,
+                    Value = a.Value
+                })
+                .ToList()
+        };
+
+        await _context.FormSubmissions.AddAsync(submission);
+        await _context.SaveChangesAsync();
+
+        // Перезагружаем с навигационными свойствами для ответа
+        submission = await _context.FormSubmissions
+            .Include(s => s.Answers).ThenInclude(a => a.Field)
+            .Include(s => s.Student)
+            .FirstAsync(s => s.Id == submission.Id);
+
+        return MapSubmissionToDto(submission);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FormWithMyAnswersDto?> GetMySubmissionByEventIdAsync(Guid eventId, Guid studentId)
+    {
+        Form? form = await _context.Forms
+            .Include(f => f.Fields)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.EventId == eventId);
+
+        if (form is null)
+            return null;
+
+        FormSubmission? submission = await _context.FormSubmissions
+            .Include(s => s.Answers).ThenInclude(a => a.Field)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.FormId == form.Id && s.StudentId == studentId);
+
+        if (submission is null)
+            return null;
+
+        var fieldMap = form.Fields.ToDictionary(f => f.Id);
+
+        return new FormWithMyAnswersDto
+        {
+            FormId = form.Id,
+            EventId = form.EventId,
+            FormTitle = form.Title,
+            SubmissionId = submission.Id,
+            SubmittedAt = submission.SubmittedAt,
+            Fields = submission.Answers
+                .Where(a => fieldMap.ContainsKey(a.FieldId))
+                .Select(a => new FilledFieldDto
+                {
+                    FieldId = a.FieldId,
+                    Text = fieldMap[a.FieldId].Text,
+                    Value = a.Value
+                })
+                .ToList()
+        };
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+    // ══════════════════════════════════════════════════════════════
+
+    private async Task<Form> GetFormOrThrowAsync(Guid formId)
+    {
+        return await _context.Forms
+            .Include(f => f.Fields)
+                .ThenInclude(ff => ff.Options)
+            .FirstOrDefaultAsync(f => f.Id == formId)
+            ?? throw new KeyNotFoundException($"Форма {formId} не найдена.");
+    }
+
+    private static List<FormField> MapFields(List<FormFieldDto> dtos, Guid formId)
+    {
+        return dtos.Select(dto =>
+        {
+            var fieldId = Guid.NewGuid();
+            return new FormField
+            {
+                Id = fieldId,
+                FormId = formId,
+                Text = dto.Text,
+                Description = dto.Description,
+                Type = dto.Type,
+                IsRequired = dto.IsRequired,
+                Order = dto.Order,
+                Options = dto.Options is { Count: > 0 }
+                    ? dto.Options.Select((opt, index) => new QuestionOption
+                    {
+                        Id = Guid.NewGuid(),
+                        QuestionId = fieldId,
+                        Text = opt.Text,
+                        Value = opt.Value,
+                        OrderIndex = index
+                    }).ToList()
+                    : new List<QuestionOption>()
+            };
+        }).ToList();
+    }
+
+    private static FormResponseDto MapToResponseDto(Form form)
+    {
+        return new FormResponseDto
+        {
+            Id = form.Id,
+            EventId = form.EventId,
+            Title = form.Title,
+            Description = form.Description,
+            IsOpen = form.IsOpen,
+            DeadlineAt = form.DeadlineAt,
+            CreatedAt = form.CreatedAt,
+            UpdatedAt = form.UpdatedAt,
+            Fields = form.Fields
+                .OrderBy(f => f.Order)
+                .Select(f => new FormFieldResponseDto
+                {
+                    Id = f.Id,
+                    Text = f.Text,
+                    Description = f.Description,
+                    Type = f.Type,
+                    IsRequired = f.IsRequired,
+                    Order = f.Order,
+                    Options = f.Options
+                        .OrderBy(o => o.OrderIndex)
+                        .Select(o => new QuestionOptionDto
+                        {
+                            Text = o.Text,
+                            Value = o.Value
+                        })
+                        .ToList()
+                })
+                .ToList()
+        };
+    }
+
+    private static FormSubmissionResponseDto MapSubmissionToDto(FormSubmission submission)
+    {
+        return new FormSubmissionResponseDto
+        {
+            Id = submission.Id,
+            FormId = submission.FormId,
+            StudentId = submission.StudentId,
+            StudentName = submission.Student is not null
+                ? $"{submission.Student.Name} {submission.Student.Surname}"
+                : null,
+            SubmittedAt = submission.SubmittedAt,
+            Answers = submission.Answers.Select(a => new AnswerResponseDto
+            {
+                FieldId = a.FieldId,
+                FieldText = a.Field?.Text ?? string.Empty,
+                Value = a.Value
+            }).ToList()
+        };
+    }
+}

@@ -4,3 +4,13 @@ GET {{CareerPoint.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### Получить все события
+GET {{CareerPoint.API_HostAddress}}/api/events/get-events
+Accept: application/json
+
+###
+
+### Получить события с фильтром
+GET {{CareerPoint.API_HostAddress}}/api/events/get-events?EventTypes=Contest&EventTypes=Vacancy&StartDateFrom=2026-04-01&StartDateTo=2026-05-01
+Accept: application/json

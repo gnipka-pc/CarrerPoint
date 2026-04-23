@@ -4,6 +4,10 @@ using CareerPoint.Infrastructure.Interfaces;
 using CareerPoint.Infrastructure.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Minio;
+using Minio.DataModel;
+using Minio.DataModel.Args;
+using System.IO.Compression;
 
 namespace CareerPoint.Web.Controllers;
 
@@ -15,14 +19,17 @@ namespace CareerPoint.Web.Controllers;
 public class EventController : ControllerBase
 {
     readonly IEventAppService _eventAppService;
+    readonly IMinioClient _minioClient;
 
     /// <summary>
     /// Базовый конструктор контроллера ивентов
     /// </summary>
     /// <param name="eventAppService">Апп сервис ивентов</param>
-    public EventController(IEventAppService eventAppService)
+    /// <param name="minioClient">Minio клиент</param>
+    public EventController(IEventAppService eventAppService, IMinioClient minioClient)
     {
         _eventAppService = eventAppService;
+        _minioClient = minioClient;
     }
 
     /// <summary>
@@ -51,31 +58,23 @@ public class EventController : ControllerBase
     [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpGet("get-events")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetEventsAsync()
+    public async Task<IActionResult> GetEventsAsync([FromQuery] EventFilterDto? filterDto = null)
     {
-        return Ok(await _eventAppService.GetEventsAsync());
+        return Ok(await _eventAppService.GetEventsAsync(filterDto));
     }
 
     /// <summary>
     /// Создание ивента
     /// </summary>
-    /// <param name="ev">Ивент</param>
+    /// <param name="createDto">Данные для создания ивента</param>
     /// <returns></returns>
     [Authorize(Roles = "Manager")]
     [HttpPost("create-event")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CreateEventAsync([FromBody] EventDto ev)
+    public async Task<IActionResult> CreateEventAsync([FromBody] CreateEventDto createDto)
     {
-        if (await _eventAppService.GetEventByIdAsync(ev.Id) == null)
-        {
-            await _eventAppService.CreateEventAsync(ev);
-
-            return Ok(ev);
-        }
-
-        return BadRequest("Ивент с данным Id уже существует");
+        return Ok(await _eventAppService.CreateEventAsync(createDto));
     }
 
     /// <summary>
@@ -91,10 +90,10 @@ public class EventController : ControllerBase
     public async Task<IActionResult> DeleteEventAsync(Guid id)
     {
         EventDto? ev = await _eventAppService.GetEventByIdAsync(id);
-        
+
         if (ev != null)
         {
-            await _eventAppService.DeleteEventAsync(ev);
+            await _eventAppService.DeleteEventAsync(id);
             return Ok("Ивент удален успешно");
         }
 
@@ -102,23 +101,24 @@ public class EventController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление ивента 
+    /// Обновление ивента
     /// </summary>
-    /// <param name="newEvent">Ивент</param>
+    /// <param name="id">ID ивента</param>
+    /// <param name="eventDto">Данные ивента</param>
     /// <returns></returns>
     [Authorize(Roles = "Manager")]
-    [HttpPut("update-event")]
+    [HttpPut("update-event/{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UpdateEventAsync([FromBody] EventDto newEvent)
+    public async Task<IActionResult> UpdateEventAsync(Guid id, [FromBody] EventDto eventDto)
     {
-        if (await _eventAppService.GetEventByIdAsync(newEvent.Id) != null)
+        if (await _eventAppService.GetEventByIdAsync(id) != null)
         {
-            await _eventAppService.UpdateEventAsync(newEvent);
+            await _eventAppService.UpdateEventAsync(id, eventDto);
             return Ok("Ивент изменен успешно");
         }
-            
+
         return NotFound("Ивент с данным id не был найден");
     }
 
@@ -148,4 +148,204 @@ public class EventController : ControllerBase
 
         return Ok(mapper.Map<List<EventDto>>(events));
     }
+
+    /// <summary>
+    /// Добавление картинки к событию по индексу от 1 до 4 включительно
+    /// </summary>
+    /// <param name="eventId">Айди события</param>
+    /// <param name="index">Индекс</param>
+    /// <param name="file">Картинка</param>
+    /// <returns>Код статуса ответа</returns>
+    [HttpPost("add-image/{eventId:guid}/{index:int}")]
+    [Authorize(Roles = "Manager")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AddImageByIndexAsync(Guid eventId, int index, IFormFile file)
+    {
+        if (await _eventAppService.GetEventByIdAsync(eventId) == null)
+            return BadRequest("Ивента с таким айди не существует");
+
+        if (file == null || file.Length == 0)
+            return BadRequest("Файл не передан");
+
+        if (file.Length > 5 * 1024 * 1024) // 5 MB
+            return BadRequest("Слишком большой файл, не больше 5 МБ");
+
+        string extension = Path.GetExtension(file.FileName);
+        if (!new[] { ".jpg", ".jpeg", ".png" }.Contains(extension))
+            return BadRequest("Расширение должно быть jpg, jpeg или png");
+
+        if (index < 1 || index > 4)
+            return BadRequest("Индекс должен быть в диапазоне от 1 до 4 включительно");
+
+        try
+        {
+            bool isExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(eventId.ToString()));
+
+            if (!isExists)
+                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(eventId.ToString()));
+
+            var listArgs = new ListObjectsArgs()
+                .WithBucket(eventId.ToString());
+
+            int count = 0;
+            await foreach (var item in _minioClient.ListObjectsEnumAsync(listArgs))
+                count++;
+
+            if (count >= 4)
+                return BadRequest("Не может быть добавлено больше 4 картинок");
+
+
+            try
+            {
+                StatObjectArgs statObjectArgs = new StatObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(index.ToString());
+                await _minioClient.StatObjectAsync(statObjectArgs);
+
+                return BadRequest("Уже есть картинка с этим индексом");
+            }
+            catch
+            {
+                using Stream stream = file.OpenReadStream();
+                await _minioClient.PutObjectAsync(new PutObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(index.ToString())
+                    .WithStreamData(stream)
+                    .WithObjectSize(file.Length)
+                    .WithContentType(file.ContentType));
+
+                return Ok("Картинка успешно добавлена");
+            }
+        }
+        catch (Exception)
+        {
+            return BadRequest("Minio не запущен");
+        }
+    }
+
+    /// <summary>
+    /// Получение картинки по индексу от 1 до 4 включительно
+    /// </summary>
+    /// <param name="eventId">Айди события</param>
+    /// <param name="index">Индекс</param>
+    /// <returns>Файл или сообщение об ошибке</returns>
+    [HttpGet("get-image/{eventId:guid}/{index}")]
+    [Authorize(Roles = "Manager")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetImageByIndexAsync(Guid eventId, string index)
+    {
+        try
+        {
+            ObjectStat stat = await _minioClient.StatObjectAsync(
+            new StatObjectArgs()
+                .WithBucket(eventId.ToString())
+                .WithObject(index));
+
+            MemoryStream memoryStream = new();
+            await _minioClient.GetObjectAsync(new GetObjectArgs()
+                .WithBucket(eventId.ToString())
+                .WithObject(index)
+                .WithCallbackStream(async stream => await stream.CopyToAsync(memoryStream)));
+
+            memoryStream.Position = 0;
+
+            Console.WriteLine(stat.ContentType);
+
+            return File(memoryStream, stat.ContentType, stat.ContentType.Split("/")[1]);
+        }
+        catch
+        {
+            return NotFound("У вас нет картинок или Minio не запущен");
+        }
+    }
+
+    /// <summary>
+    /// Удаляет картинку по индексу от 1 до 4 включительно
+    /// </summary>
+    /// <param name="eventId">Айди события</param>
+    /// <param name="index">Индекс</param>
+    /// <returns>Код статуса ответа</returns>
+    [HttpDelete("delete-last-image/{eventId:guid}/{index:int}")]
+    [Authorize(Roles = "Manager")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteImageByIndexAsync(Guid eventId, int index)
+    {
+        if (index < 1 || index > 4)
+            return BadRequest("Индекс должен быть в диапазоне от 1 до 4 включительно");
+
+        try
+        {
+            ObjectStat stat = await _minioClient.StatObjectAsync(
+            new StatObjectArgs()
+                .WithBucket(eventId.ToString())
+                .WithObject(index.ToString()));
+
+            await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+                .WithBucket(eventId.ToString())
+                .WithObject(index.ToString()));
+
+            return Ok("Картинка успешно удалена");
+        }
+        catch
+        {
+            return NotFound("У события нет картинок, Minio не запущен или нет картинки под этим индексом");
+        }
+    }
+
+    /// <summary>
+    /// Возвращает зип архив с картинками (может быть пустым)
+    /// </summary>
+    /// <param name="eventId">Айди события</param>
+    /// <returns>Зип архив со всеми фотографиями или пустой архив, если их нет</returns>
+    [HttpGet("get-images/{eventId:guid}")]
+    public async Task<IActionResult> GetImagesAsync(Guid eventId)
+    {
+        if (!await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(eventId.ToString())))
+            return BadRequest("У события нет картинок");
+
+        MemoryStream zipStream = new();
+        using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            await foreach (var item in _minioClient.ListObjectsEnumAsync(new ListObjectsArgs().WithBucket(eventId.ToString())))
+            {
+                ObjectStat stat = await _minioClient.StatObjectAsync(
+                    new StatObjectArgs()
+                        .WithBucket(eventId.ToString())
+                        .WithObject(item.Key));
+
+                ZipArchiveEntry entry = archive.CreateEntry($"{item.Key}.{stat.ContentType.Split("/")[1]}", CompressionLevel.Optimal);
+                using Stream entryStream = entry.Open();
+
+                using MemoryStream imageStream = new();
+                await _minioClient.GetObjectAsync(new GetObjectArgs()
+                    .WithBucket(eventId.ToString())
+                    .WithObject(item.Key)
+                    .WithCallbackStream(async stream => await stream.CopyToAsync(imageStream)));
+
+                imageStream.Position = 0;
+
+                await imageStream.CopyToAsync(entryStream);
+            }
+        }
+        
+        zipStream.Position = 0;
+
+        return File(zipStream, "application/zip", "images");
+    }
+
+    //[HttpPost("test")]
+    //public async Task<IActionResult> Test(Guid id)
+    //{
+    //    //using MemoryStream ms = new();
+
+    //    //await file.CopyToAsync(ms);
+
+    //    //return File(ms.ToArray(), file.ContentType);
+    //}
 }

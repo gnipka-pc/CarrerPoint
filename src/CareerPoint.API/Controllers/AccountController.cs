@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
+using System.Data;
 using System.Security.AccessControl;
 using System.Security.Claims;
 
@@ -50,6 +51,23 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Возвращает всех пользователей
+    /// </summary>
+    /// <returns>Список всех пользователей</returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-all-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetAllUsersAsync([FromQuery] UserFilterDto filter)
+    {
+        List<User> users = await _userAppService.GetUsersAsync(filter);
+        List<UserDto> userDtos = _mapper.Map<List<UserDto>>(users);
+
+        return Ok(userDtos);
+    }
+
+    /// <summary>
     /// Возвращает пользователя по его Id
     /// </summary>
     /// <returns>Пользователь</returns>
@@ -71,6 +89,29 @@ public class AccountController : ControllerBase
         }
 
         return NotFound("Пользователь не был найден");
+    }
+
+    /// <summary>
+    /// Возвращает данные пользователя по ID (для менеджера/админа)
+    /// </summary>
+    /// <param name="userId">ID пользователя</param>
+    /// <returns>Данные пользователя</returns>
+    [Authorize(Roles = "Manager,Admin")]
+    [HttpGet("get-user-by-id/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserByIdForManagerAsync(Guid userId)
+    {
+        User? user = await _userAppService.GetUserByIdAsync(userId);
+
+        if (user is null)
+            return NotFound("Пользователь не найден");
+
+        UserDto userDto = _mapper.Map<UserDto>(user);
+
+        return Ok(userDto);
     }
 
 
@@ -103,21 +144,33 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="userDto">Пользователь</param>
     /// <returns></returns>
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, DefaultUser")]
     [HttpPut("update-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateAccountAsync([FromBody] UserDto userDto)
     {
         string? id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Проверка соответствия ID из тела запроса и из claims
+        if (userDto.Id != Guid.Parse(id))
+            return BadRequest("ID пользователя в запросе не совпадает с ID из токена");
 
         User? user = await _userAppService.GetUserByIdAsync(Guid.Parse(id));
 
         if (user is null)
             return NotFound("Пользователь не найден");
 
-        await _userAppService.UpdateUserAsync(_mapper.Map<User>(userDto));
+        var updateUser = _mapper.Map<User>(userDto);
+        updateUser.HashedPassword = user.HashedPassword;
+
+        await _userAppService.UpdateUserAsync(updateUser);
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await SignInWithClaimsAsync(user.UserRole, id);
 
         return Ok("Пользователь успешно изменен");
     }
@@ -205,9 +258,8 @@ public class AccountController : ControllerBase
         {
             var userEntity = _mapper.Map<User>(user);
             userEntity.UserRole = UserRole.DefaultUser;
-            await _userAppService.CreateUserAsync(userEntity);
 
-            return Ok("Пользователь успешно добавлен");
+            return Ok(await _userAppService.CreateUserAsync(userEntity));
         }
 
         return BadRequest("Пользователь с данной почтой или логином уже существует");
@@ -230,31 +282,7 @@ public class AccountController : ControllerBase
         if (user is null)
             return BadRequest("Почта или пароль не правильные");
 
-        string userRole = user.UserRole switch
-        {
-            UserRole.Admin => "Admin",
-            UserRole.Manager => "Manager",
-            UserRole.DefaultUser => "DefaultUser",
-            _ => throw new UnauthorizedAccessException()
-        };
-
-        List<Claim> claims = new()
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, userRole)
-        };
-
-        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity),
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                AllowRefresh = true,
-                ExpiresUtc = DateTime.UtcNow.AddDays(2)
-            });
+        await SignInWithClaimsAsync(user.UserRole, user.Id.ToString());
 
         return Ok("Вы успешно вошли в аккаунт");
     }
@@ -279,7 +307,7 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="userId">ID пользователя для удаления</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "DefaultUser,Manager,Admin")]
     [HttpDelete("delete-user/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -298,7 +326,7 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление данных пользователя по ID (для менеджера)
+    /// Обновление данных пользователя по ID (для менеджера/админа)
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="userDto">Новые данные</param>
@@ -317,10 +345,24 @@ public class AccountController : ControllerBase
         if (existingUser is null)
             return NotFound("Пользователь не найден");
 
-        // Обновляем только разрешенные поля
-        // (не меняем пароль и ID)
+        // Обновляем все поля (кроме пароля и ID)
         existingUser.Username = userDto.Username;
         existingUser.Email = userDto.Email;
+        existingUser.Name = userDto.Name;
+        existingUser.Surname = userDto.Surname;
+        existingUser.Patronymic = userDto.Patronymic;
+        existingUser.Description = userDto.Description;
+        existingUser.TelegramLink = userDto.TelegramLink;
+        existingUser.PortfolioLink = userDto.PortfolioLink;
+        existingUser.IsSubscribedToNotifications = userDto.IsSubscribedToNotifications;
+        existingUser.Age = userDto.Age;
+        existingUser.Directions = userDto.Directions;
+        existingUser.Course = userDto.Course;
+        existingUser.Group = userDto.Group;
+        existingUser.PhoneNumber = userDto.PhoneNumber;
+        existingUser.Skills = userDto.Skills;
+        existingUser.UserRole = userDto.UserRole;
+        existingUser.AvatarUrl = userDto.AvatarUrl;
 
         await _userAppService.UpdateUserAsync(existingUser);
 
@@ -471,6 +513,42 @@ public class AccountController : ControllerBase
 
     //    return Ok("Бакет удален");
     //}
+
+    //[HttpGet("get-role")]
+    //public async Task<IActionResult> GetRole()
+    //{
+    //    return Ok(User.FindFirstValue(ClaimTypes.Role));
+    //}
+
+    private async Task SignInWithClaimsAsync(UserRole role, string id)
+    {
+        string userRole = role switch
+        {
+            UserRole.Admin => "Admin",
+            UserRole.Manager => "Manager",
+            UserRole.DefaultUser => "DefaultUser",
+            _ => throw new UnauthorizedAccessException()
+        };
+
+        List<Claim> claims = new()
+        {
+            new Claim(ClaimTypes.NameIdentifier, id),
+            new Claim(ClaimTypes.Role, userRole)
+        };
+
+        ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                AllowRefresh = true,
+                ExpiresUtc = DateTime.UtcNow.AddDays(2)
+            });
+
+    }
 }
 
 /// <summary>
