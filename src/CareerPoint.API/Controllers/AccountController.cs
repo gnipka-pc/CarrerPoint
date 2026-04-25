@@ -358,6 +358,7 @@ public class AccountController : ControllerBase
         existingUser.Age = userDto.Age;
         existingUser.Directions = userDto.Directions;
         existingUser.Course = userDto.Course;
+        existingUser.Project = userDto.Project;
         existingUser.Group = userDto.Group;
         existingUser.PhoneNumber = userDto.PhoneNumber;
         existingUser.Skills = userDto.Skills;
