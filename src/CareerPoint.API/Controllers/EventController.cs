@@ -249,7 +249,7 @@ public class EventController : ControllerBase
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                 .WithBucket(eventId.ToString())
                 .WithObject(index)
-                .WithCallbackStream(async stream => await stream.CopyToAsync(memoryStream)));
+                .WithCallbackStream(stream => stream.CopyTo(memoryStream)));
 
             memoryStream.Position = 0;
 
@@ -257,8 +257,9 @@ public class EventController : ControllerBase
 
             return File(memoryStream, stat.ContentType, stat.ContentType.Split("/")[1]);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
             return NotFound("У вас нет картинок или Minio не запущен");
         }
     }
