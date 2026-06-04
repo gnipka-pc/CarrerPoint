@@ -389,7 +389,7 @@ public class AccountController : ControllerBase
         if (file.Length > 5 * 1024 * 1024) // 5 MB
             return BadRequest("Слишком большой файл, не больше 5 МБ");
 
-        string extension = Path.GetExtension(file.FileName);
+        string extension = Path.GetExtension(file.FileName).ToLowerInvariant();;
         if (!new[] { ".jpg", ".jpeg", ".png" }.Contains(extension))
             return BadRequest("Расширение должно быть jpg, jpeg или png");
 
