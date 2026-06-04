@@ -78,6 +78,17 @@ public class Program
             return new MinioBucketInitializerHostedService(f.GetRequiredService<IMinioClient>(), BucketName, f.GetRequiredService<ILogger<MinioBucketInitializerHostedService>>());
         });
 
+        builder.Services.AddCors(options =>
+                                 {
+                                     options.AddPolicy("AllowAll", policy =>
+                                                       {
+                                                           policy
+                                                               .AllowAnyOrigin()
+                                                               .AllowAnyHeader()
+                                                               .AllowAnyMethod();
+                                                       });
+                                 });
+
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
@@ -90,6 +101,7 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI();
 
+        app.UseCors("AllowAll");
         //app.UseHttpsRedirection();
 
         app.UseAuthentication();
