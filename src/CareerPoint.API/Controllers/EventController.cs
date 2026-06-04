@@ -157,7 +157,7 @@ public class EventController : ControllerBase
     /// <param name="file">Картинка</param>
     /// <returns>Код статуса ответа</returns>
     [HttpPost("add-image/{eventId:guid}/{index:int}")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -232,7 +232,6 @@ public class EventController : ControllerBase
     /// <param name="index">Индекс</param>
     /// <returns>Файл или сообщение об ошибке</returns>
     [HttpGet("get-image/{eventId:guid}/{index}")]
-    [Authorize(Roles = "Manager")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -271,7 +270,7 @@ public class EventController : ControllerBase
     /// <param name="index">Индекс</param>
     /// <returns>Код статуса ответа</returns>
     [HttpDelete("delete-last-image/{eventId:guid}/{index:int}")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
